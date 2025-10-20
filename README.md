@@ -7,7 +7,7 @@
 
 Perspicacity is an AI-powered Islamic research assistant that provides sourced answers from trusted Islamic websites (IslamQA.info and IslamWeb.net).
 
-🌐 **Live Demo**: [perspicacity.is-cool.dev](https://perspicacity.is-cool.dev)
+🌐 **Live Demo**: [perspicacity.pages.dev](https://perspicacity.pages.dev)
 
 ## ✨ Features
 
@@ -20,7 +20,7 @@ Perspicacity is an AI-powered Islamic research assistant that provides sourced a
 
 ## 🚀 Quick Start
 
-Visit [perspicacity.is-cool.dev](https://perspicacity.is-cool.dev) and follow these steps:
+Visit [perspicacity.pages.dev](https://perspicacity.pages.dev) and follow these steps:
 
 1. Click the settings icon (⚙️) in the top right
 2. Enter your free API keys:
@@ -47,12 +47,12 @@ Visit [perspicacity.is-cool.dev](https://perspicacity.is-cool.dev) and follow th
 ## 📱 Install as App
 
 **On Mobile (Android/iOS):**
-1. Visit [perspicacity.is-cool.dev](https://perspicacity.is-cool.dev) in your browser
+1. Visit [perspicacity.pages.dev](https://perspicacity.pages.dev) in your browser
 2. Tap browser menu (⋮) → "Add to Home Screen"
 3. Access like a native app!
 
 **On Desktop:**
-1. Visit [perspicacity.is-cool.dev](https://perspicacity.is-cool.dev) in Chrome/Edge
+1. Visit [perspicacity.pages.dev](https://perspicacity.pages.dev) in Chrome/Edge
 2. Look for install icon in address bar
 3. Click "Install"
 
@@ -123,4 +123,4 @@ If Perspicacity helps you in your Islamic learning journey:
 
 **Made with ❤️ for the Muslim Ummah**
 
-[Report Issue](https://github.com/mdselimdev/Perspicacity/issues) · [Request Feature](https://github.com/mdselimdev/Perspicacity/issues) · [Visit App](https://perspicacity.is-a.dev)
+[Report Issue](https://github.com/mdselimdev/Perspicacity/issues) · [Request Feature](https://github.com/mdselimdev/Perspicacity/issues) · [Visit App](https://perspicacity.pages.dev)
