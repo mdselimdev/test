@@ -284,10 +284,34 @@ document.addEventListener('DOMContentLoaded', () => {
             eventSource.close();
             eventSource = null;
         }
+        
+        // NEW: If there's a current streaming div without action buttons, add them
+        if (currentStreamingDiv) {
+            const contentDiv = currentStreamingDiv.querySelector('.message-content');
+            const answerTab = contentDiv?.querySelector('.response-content');
+            
+            if (answerTab && !answerTab.querySelector('.message-actions')) {
+                const query = currentStreamingDiv.dataset.query || '';
+                const mode = currentStreamingDiv.dataset.mode || 'search';
+                
+                // Remove any status spinners
+                const statusDiv = contentDiv.querySelector('.search-status');
+                if (statusDiv) statusDiv.remove();
+                
+                // Add a stopped message if answer tab is empty
+                if (!answerTab.textContent.trim()) {
+                    answerTab.innerHTML = '<p style="color: var(--text-secondary);">Generation stopped.</p>';
+                }
+                
+                // Add action buttons
+                addActionButtons(answerTab, answerTab.textContent, [], query, false);
+            }
+        }
+        
         setSendButtonState(false);
         showNotification('Generation stopped', 'error');
     }
-
+    
     chatForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         if (isGenerating) {
@@ -1247,7 +1271,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const googleApiKey = localStorage.getItem('google_api_key');
 
         const conversationHistory = extractContextFromDOM(responseDiv);
-
+        abortController = new AbortController();
         setSendButtonState(true);
         if (workflow === 'search') {
             handleSearchModeRegenerate(apiKey, googleApiKey, newQuery, responseDiv, conversationHistory);
@@ -1258,7 +1282,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function handleSearchModeRegenerate(apiKey, googleApiKey, query, messageDiv, conversationHistory) {
         const contentDiv = messageDiv.querySelector('.message-content');
-    
+        abortController = new AbortController();
         // Create search status div
         const searchStatus = document.createElement('div');
         searchStatus.className = 'search-status';
@@ -1392,6 +1416,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function handleResearchModeRegenerate(apiKey, googleApiKey, query, messageDiv, conversationHistory) {
+        abortController = new AbortController();
         try {
             const response = await fetch(`${API_BASE_URL}/research`, {
                 method: 'POST',
