@@ -287,10 +287,6 @@ document.addEventListener('DOMContentLoaded', () => {
             abortController.abort();
             abortController = null;
         }
-        if (eventSource) {
-            eventSource.close();
-            eventSource = null;
-        }
     
         // NEW: If there's a current streaming div without action buttons, add them
         if (currentStreamingDiv) {
