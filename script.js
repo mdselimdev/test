@@ -1184,8 +1184,9 @@ document.addEventListener('DOMContentLoaded', () => {
             contentDiv.removeChild(contentDiv.firstChild);
         }
         if (newMode === 'search') {
-            contentDiv.innerHTML = '<div class="search-status"><div class="status-spinner"></div><span>Searching Islamic Sources...</span></div>';
+            contentDiv.innerHTML = `<div class="search-status"><div class="status-spinner"></div><span class="status-text">Analyzing question...</span></div>`;
         }
+
         messageDiv.dataset.mode = newMode;
         sourcesMap = {};
         allSourcesList = [];
@@ -1226,7 +1227,7 @@ document.addEventListener('DOMContentLoaded', () => {
             contentDiv.removeChild(contentDiv.firstChild);
         }
         if (workflow === 'search') {
-            contentDiv.innerHTML = '<div class="search-status"><div class="status-spinner"></div><span>Searching Islamic Sources...</span></div>';
+            contentDiv.innerHTML = `<div class="search-status"><div class="status-spinner"></div><span class="status-text">Analyzing question...</span></div>`;
         }
         responseDiv.dataset.query = newQuery;
         responseDiv.dataset.mode = workflow;
