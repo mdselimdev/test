@@ -1254,7 +1254,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function handleSearchModeRegenerate(apiKey, googleApiKey, query, messageDiv, conversationHistory) {
-        abortController = new AbortController();
+        const contentDiv = messageDiv.querySelector('.message-content');
+    
+        // Create search status div
+        const searchStatus = document.createElement('div');
+        searchStatus.className = 'search-status';
+        searchStatus.innerHTML = '<div class="status-spinner"></div><span class="status-text">Analyzing question...</span>';
+        contentDiv.appendChild(searchStatus);
 
         const headers = {'Content-Type': 'application/json'};
         const body = JSON.stringify({
@@ -1263,41 +1269,115 @@ document.addEventListener('DOMContentLoaded', () => {
             query: query,
             conversation_history: conversationHistory
         });
+
         try {
-            const response = await fetch(`${API_BASE_URL}/search`, { method: 'POST', headers, body, signal: abortController.signal });
-            const result = await response.json();
+            const response = await fetch(`${API_BASE_URL}/search`, {
+                method: 'POST',
+                headers,
+                body
+            });
 
-            if (!response.ok) {
-                const errorMessage = result.message || result.error || 'An unexpected error occurred. Please try again.';
-                await streamResponse(messageDiv, errorMessage, [], query, 'search');
-                currentStreamingDiv = null;
-                setSendButtonState(false);
-                abortController = null;
-                return;
-            }
+            // Check if it's a streaming response
+            const contentType = response.headers.get('content-type');
+        
+            if (contentType && contentType.includes('text/event-stream')) {
+                // Handle streaming response
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
 
-            if (result.sources) {
-                allSourcesList = result.sources;
-                result.sources.forEach((source, index) => {
-                    sourcesMap[index + 1] = source;
-                });
-            }
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
 
-            if (result.articles) {
-                allArticlesList = result.articles;
-            }
-            if (result.books) {
-                allBooksList = result.books;
-            }
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop() || '';
 
-            await streamResponse(messageDiv, result.answer || result.final_answer, result.sources, query, 'search', result.show_ask_scholar_button);
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const data = line.slice(6);
+                            if (data === 'Stream finished.') continue;
+
+                            try {
+                                const result = JSON.parse(data);
+                            
+                                // Update status text
+                                if (result.status) {
+                                    const statusText = searchStatus.querySelector('.status-text');
+                                    if (statusText) {
+                                        statusText.textContent = result.status;
+                                    }
+                                }
+                            
+                                // Handle final answer
+                                if (result.final_answer) {
+                                    searchStatus.remove();
+                                
+                                    if (result.sources) {
+                                        allSourcesList = result.sources;
+                                        result.sources.forEach((source, index) => {
+                                            sourcesMap[index + 1] = source;
+                                        });
+                                    }
+                                
+                                    if (result.articles) {
+                                        allArticlesList = result.articles;
+                                    }
+                                
+                                    if (result.books) {
+                                        allBooksList = result.books;
+                                    }
+                                
+                                    await streamResponse(messageDiv, result.final_answer, result.sources, query, 'search', result.show_ask_scholar_button);
+                                }
+                            } catch (e) {
+                                console.error('Error parsing JSON:', e);
+                            }
+                        }
+                    }
+                }
+            } else {
+                // Handle non-streaming JSON response (for categories C, E, F)
+                const result = await response.json();
+            
+                if (!response.ok) {
+                    const errorMessage = result.message || result.error || 'An unexpected error occurred. Please try again.';
+                    searchStatus.remove();
+                    await streamResponse(messageDiv, errorMessage, [], query, 'search');
+                    currentStreamingDiv = null;
+                    setSendButtonState(false);
+                    return;
+                }
+            
+                // Remove status for non-search categories
+                searchStatus.remove();
+            
+                if (result.sources) {
+                    allSourcesList = result.sources;
+                    result.sources.forEach((source, index) => {
+                        sourcesMap[index + 1] = source;
+                    });
+                }
+            
+                if (result.articles) {
+                    allArticlesList = result.articles;
+                }
+            
+                if (result.books) {
+                    allBooksList = result.books;
+                }
+            
+                await streamResponse(messageDiv, result.answer || result.final_answer, result.sources, query, 'search', result.show_ask_scholar_button);
+            }
         } catch (error) {
             if (error.name === 'AbortError') {
-                const contentDiv = messageDiv.querySelector('.message-content');
-                const searchStatus = contentDiv.querySelector('.search-status');
-                if (searchStatus) searchStatus.remove();
+                const searchStatusDiv = contentDiv.querySelector('.search-status');
+                if (searchStatusDiv) searchStatusDiv.remove();
             } else {
                 const errorMessage = error.message || 'I encountered an issue. Please try again.';
+                const searchStatusDiv = contentDiv.querySelector('.search-status');
+                if (searchStatusDiv) searchStatusDiv.remove();
                 await streamResponse(messageDiv, errorMessage, [], query, 'search');
             }
         } finally {
