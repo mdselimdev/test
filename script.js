@@ -32,7 +32,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputBox = document.getElementById('input-box');
 
     let currentMode = 'search';
-    let eventSource = null;
     let abortController = null;
     let sourcesMap = {};
     let allSourcesList = [];
