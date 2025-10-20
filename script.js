@@ -132,6 +132,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     const contentDiv = previousMessage.querySelector('.message-content');
                     if (contentDiv) {
                         const clone = contentDiv.cloneNode(true);
+
+                        // --- FIX: Get content from the answer tab *before* removing it ---
+                        const answerTab = clone.querySelector('.response-content');
+                        content = answerTab ? answerTab.textContent.trim() : '';
+                        // --- END FIX ---
+
                         const tabs = clone.querySelector('.response-tabs');
                         if (tabs) tabs.remove();
                         const tabContents = clone.querySelectorAll('.tab-content');
@@ -142,9 +148,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (steps) steps.remove();
                         const searchStatus = clone.querySelector('.search-status');
                         if (searchStatus) searchStatus.remove();
-                        content = clone.textContent.trim();
+                        
+                        // --- FIX: The 'content = clone.textContent.trim();' line is deleted
+                        // as we already have the content. We just run the sanitizers.
                         content = content.replace(/\[\d+\]/g, '');
                         content = content.replace(/\s+/g, ' ').trim();
+                        // --- END FIX ---
                     }
                 }
 
