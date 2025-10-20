@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://perspicacitybackend.onrender.com';
+const API_BASE_URL = 'https://erspicacityackend-mdselimdev3559-ol66ifkv.apn.leapcell.dev';
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
