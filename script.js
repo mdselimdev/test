@@ -1165,23 +1165,19 @@ document.addEventListener('DOMContentLoaded', () => {
     function regenerateResponse(messageDiv, newMode) {
         const query = messageDiv.dataset.query;
         if (!query) return;
+
+        // Abort previous request (if any) and create a new controller
         if (isGenerating) {
-            if (abortController) {
-                abortController.abort();
-                abortController = null;
-            }
-            if (eventSource) {
-                eventSource.close();
-                eventSource = null;
-            }
+            if (eventSource) { eventSource.close(); eventSource = null; }
+            if (abortController) { abortController.abort(); }
         }
+        abortController = new AbortController(); // <-- BUGFIX: Create new controller
 
         scrollToMessage(messageDiv);
 
+        // Clear the existing content and add a spinner if switching to search
         const contentDiv = messageDiv.querySelector('.message-content');
-        while (contentDiv.firstChild) {
-            contentDiv.removeChild(contentDiv.firstChild);
-        }
+        contentDiv.innerHTML = '';
         if (newMode === 'search') {
             contentDiv.innerHTML = `<div class="search-status"><div class="status-spinner"></div><span class="status-text">Analyzing question...</span></div>`;
         }
@@ -1204,30 +1200,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
         setSendButtonState(true);
         if (newMode === 'search') {
-            handleSearchModeRegenerate(apiKey, googleApiKey, query, messageDiv, conversationHistory);
+            executeSearch(apiKey, googleApiKey, query, messageDiv, conversationHistory, abortController.signal);
         } else {
-            handleResearchModeRegenerate(apiKey, googleApiKey, query, messageDiv, conversationHistory);
+            executeResearch(apiKey, googleApiKey, query, messageDiv, conversationHistory, abortController.signal);
         }
     }
 
     function regenerateWithNewQuery(responseDiv, newQuery, workflow) {
+        // Abort previous request (if any) and create a new controller
         if (isGenerating) {
-            if (abortController) {
-                abortController.abort();
-                abortController = null;
-            }
-            if (eventSource) {
-                eventSource.close();
-                eventSource = null;
-            }
+            if (eventSource) { eventSource.close(); eventSource = null; }
+            if (abortController) { abortController.abort(); }
         }
+        abortController = new AbortController(); // <-- BUGFIX: Create new controller
+        
+        // Clear the existing content and add a spinner if it's a search
         const contentDiv = responseDiv.querySelector('.message-content');
-        while (contentDiv.firstChild) {
-            contentDiv.removeChild(contentDiv.firstChild);
-        }
+        contentDiv.innerHTML = '';
         if (workflow === 'search') {
             contentDiv.innerHTML = `<div class="search-status"><div class="status-spinner"></div><span class="status-text">Analyzing question...</span></div>`;
         }
+
         responseDiv.dataset.query = newQuery;
         responseDiv.dataset.mode = workflow;
         sourcesMap = {};
@@ -1247,9 +1240,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         setSendButtonState(true);
         if (workflow === 'search') {
-            handleSearchModeRegenerate(apiKey, googleApiKey, newQuery, responseDiv, conversationHistory);
+            executeSearch(apiKey, googleApiKey, newQuery, responseDiv, conversationHistory, abortController.signal);
         } else {
-            handleResearchModeRegenerate(apiKey, googleApiKey, newQuery, responseDiv, conversationHistory);
+            executeResearch(apiKey, googleApiKey, newQuery, responseDiv, conversationHistory, abortController.signal);
         }
     }
 
