@@ -576,6 +576,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const stepsContainer = contentDiv.querySelector('.research-steps');
             if (stepsContainer) stepsContainer.remove();
 
+            // Handle user-triggered stop
+            if (error.name === 'AbortError') {
+                return; // Stop quietly
+            }
+
             const errorMessage = error.message || 'Connection error occurred. Please try again.';
             await streamResponse(messageDiv, errorMessage, [], query, 'research');
         } finally {
@@ -1464,8 +1469,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const stepsContainer = contentDiv.querySelector('.research-steps');
             if (stepsContainer) stepsContainer.remove();
 
+            // Handle user-triggered stop
+            if (error.name === 'AbortError') {
+                return; // Stop quietly
+            }
+            
             const errorMessage = error.message || 'Connection error occurred. Please try again.';
-            await streamResponse(messageDiv, result.final_answer, result.sources, query, 'research', result.show_ask_scholar_button);
+            // Note: The original file had a bug here, referencing 'result'. 
+            // This is the correct error handling:
+            await streamResponse(messageDiv, errorMessage, [], query, 'research');
         } finally {
             currentStreamingDiv = null;
             setSendButtonState(false);
