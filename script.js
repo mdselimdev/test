@@ -1102,11 +1102,11 @@ document.addEventListener('DOMContentLoaded', () => {
         answerTabContent.appendChild(actionsDiv);
     }
 
-        function copyResponse(markdownText, sources, originalQuery, button) {
-            // Use the passed-in markdownText directly
-            let cleanedMarkdown = markdownText.trim();
+    function copyResponse(markdownText, sources, originalQuery, button) {
+        // Use the passed-in markdownText directly
+        let cleanedMarkdown = markdownText.trim();
 
-            let copyText = `${originalQuery}\n\n${cleanedMarkdown}\n\n`;
+        let copyText = `${originalQuery}\n\n${cleanedMarkdown}\n\n`;
 
         if (sources && sources.length > 0) {
             copyText += 'Citations:\n';
