@@ -1,0 +1,25 @@
+{
+  "name": "Perspicacity - Islamic AI Research",
+  "short_name": "Perspicacity",
+  "description": "Beyond Knowledge, Towards Wisdom. An AI-powered app for Islamic research with sourced answers from trusted Islamic websites.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#20808d",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

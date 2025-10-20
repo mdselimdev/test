@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google-site-verification" content="zNI11DBPyGk9TK9a4nV-JVXqqZ388RExiveBpD5t2FI" />
+    <title>Perspicacity - Islamic AI Research Assistant</title>
+    <link rel="icon" type="image/png" sizes="48x48" href="/icons/favicon-48.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="/icons/favicon-96.png">
+    <link rel="icon" type="image/svg+xml" href="/icons/favicon.svg">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Perspicacity is an AI-powered Islamic research assistant that provides sourced answers from IslamQA.info and IslamWeb.net. Ask questions and get reliable Islamic guidance.">
+    <meta name="keywords" content="Islamic AI, Islamic research, Islamic Q&A, IslamQA, Islamic assistant, Islamic chatbot, halal AI">
+    <meta name="author" content="Md Selim">
+    
+    <!-- Open Graph Meta Tags for Social Sharing -->
+    <meta property="og:title" content="Perspicacity - Islamic AI Research Assistant">
+    <meta property="og:description" content="Beyond Knowledge, Towards Wisdom. Get AI-powered Islamic answers sourced from trusted websites.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://perspicacity.is-cool.dev">
+    <meta property="og:image" content="https://perspicacity.is-cool.dev/icons/og-image.png">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Perspicacity - Islamic AI Research">
+    <meta name="twitter:description" content="AI-powered Islamic research with sourced answers from trusted Islamic websites.">
+    <meta name="twitter:image" content="https://perspicacity.is-cool.dev/icons/tc-image.png">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#20808d">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Perspicacity">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+    
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button class="close-modal" id="close-settings">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-item">
+                    <label for="api-key-input">Gemini API Key</label>
+                    <input type="password" id="api-key-input" placeholder="Enter your Gemini API key">
+                    <small>Get your key from <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a></small>
+                </div>
+                <div class="setting-item">
+                    <label for="google-api-key-input">Google Cloud API Key</label>
+                    <input type="password" id="google-api-key-input" placeholder="Enter your Google Cloud API key">
+                    <small>Get your key from <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud Console</a></small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary" id="save-settings">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="chat-container">
+        <!-- Header -->
+        <header class="chat-header">
+            <div class="logo">
+                <svg class="logo-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                    <polyline points="7.5 4.21 12 6.81 16.5 4.21"></polyline>
+                    <polyline points="7.5 19.79 7.5 14.6 3 12"></polyline>
+                    <polyline points="21 12 16.5 14.6 16.5 19.79"></polyline>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                </svg>
+                <h1>Perspicacity</h1>
+            </div>
+            <button class="settings-btn" id="open-settings">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+            </button>
+        </header>
+
+        <!-- Chat Messages Area -->
+        <div class="chat-messages" id="chat-messages">
+            <div class="welcome-screen">
+                <div class="welcome-content">
+                    <h1 class="welcome-heading">Beyond Knowledge, Towards Wisdom</h1>
+                    
+                    <div class="welcome-disclaimer">
+                        <div class="disclaimer-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                            </svg>
+                        </div>
+                        <div class="disclaimer-content">
+                            <span class="disclaimer-title">Important Disclaimer: Not a Fatwa Service</span>
+                            <span class="disclaimer-desc">Perspicacity is an AI research tool, not a scholar or a Mufti. It summarizes information from IslamQA.info and IslamWeb.net. AI can make mistakes. For any personal religious ruling (fatwa), you <strong>must</strong> consult a qualified scholar.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scroll to Bottom Button -->
+        <button id="scroll-to-bottom" class="scroll-to-bottom hidden">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14M19 12l-7 7-7-7"/>
+            </svg>
+        </button>
+
+        <!-- Input Area - Fixed Position -->
+        <div class="chat-input-wrapper">
+            <div class="chat-input-container">
+                <form id="chat-form" class="chat-form">
+                    <div class="input-box" id="input-box">
+                        <div class="input-text-row" id="input-text-row">
+                            <textarea 
+                                id="query-input" 
+                                rows="1"
+                                placeholder="Ask anything about Islam..."
+                                data-initial-placeholder="Ask anything..."
+                                data-followup-placeholder="Ask follow-up..."
+                            ></textarea>
+                        </div>
+
+                        <div class="input-controls-row" id="input-controls-row">
+                            <div class="workflow-selector">
+                                <button type="button" class="workflow-btn" id="workflow-btn">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="workflow-icon">
+                                        <circle cx="11" cy="11" r="8"></circle>
+                                        <path d="m21 21-4.35-4.35"></path>
+                                    </svg>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chevron">
+                                        <polyline points="6 9 12 15 18 9"></polyline>
+                                    </svg>
+                                </button>
+                                <div class="workflow-dropdown hidden" id="workflow-dropdown">
+                                    <div class="workflow-option" data-mode="search">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="11" cy="11" r="8"></circle>
+                                            <path d="m21 21-4.35-4.35"></path>
+                                        </svg>
+                                        <div class="workflow-info">
+                                            <div class="workflow-name">Search</div>
+                                            <div class="workflow-desc">Quick answers with sources</div>
+                                        </div>
+                                    </div>
+                                    <div class="workflow-option" data-mode="research">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                                            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                                        </svg>
+                                        <div class="workflow-info">
+                                            <div class="workflow-name">Research</div>
+                                            <div class="workflow-desc">Deep multi-step analysis</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="input-actions">
+                                <button type="submit" class="send-btn" id="send-btn" disabled>
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
