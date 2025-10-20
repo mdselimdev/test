@@ -296,8 +296,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const query = queryInput.value.trim();
         if (!query) return;
+
+        // Abort previous request (if any) and create a new controller
         if (eventSource) eventSource.close();
         if (abortController) abortController.abort();
+        abortController = new AbortController(); // <-- BUGFIX: Create new controller
+
         const apiKey = localStorage.getItem('gemini_api_key');
         const googleApiKey = localStorage.getItem('google_api_key');
         if (!apiKey) {
@@ -314,11 +318,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const welcomeScreen = document.querySelector('.welcome-screen');
         if (welcomeScreen) {
             welcomeScreen.remove();
-            // Enable scrolling after welcome screen is removed
             chatMessages.classList.remove('has-welcome');
         }
 
-        // IMMEDIATELY: Switch to compact layout and change placeholder
         if (conversationCount === 0) {
             inputBox.classList.add('compact');
             conversationCount++;
@@ -327,7 +329,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const usedMode = currentMode;
         const userMessageDiv = addMessage(query, 'user', usedMode);
-
         scrollToMessage(userMessageDiv);
 
         isUserScrolledUp = false;
@@ -336,8 +337,8 @@ document.addEventListener('DOMContentLoaded', () => {
         updateSendButtonState();
         sourcesMap = {};
         allSourcesList = [];
-        allArticlesList = []; // ADD THIS
-        allBooksList = []; // ADD THIS
+        allArticlesList = [];
+        allBooksList = [];
         researchStepsList = [];
         wordCount = 0;
         lastScrollPosition = chatMessages.scrollHeight;
@@ -345,13 +346,26 @@ document.addEventListener('DOMContentLoaded', () => {
         setSendButtonState(true);
 
         const conversationHistory = extractContextFromDOM(userMessageDiv);
+        
+        // Create the new assistant message div to be passed
+        let messageDiv;
+        if (usedMode === 'search') {
+            messageDiv = addMessage('', 'assistant', 'search');
+        } else {
+            messageDiv = addMessage('', 'assistant', 'research');
+        }
+        
+        messageDiv.dataset.query = query;
+        messageDiv.dataset.mode = usedMode;
+        currentStreamingDiv = messageDiv;
 
         if (usedMode === 'search') {
-            handleSearchMode(apiKey, googleApiKey, query, conversationHistory);
+            executeSearch(apiKey, googleApiKey, query, conversationHistory, messageDiv, abortController.signal);
         } else {
-            handleResearchMode(apiKey, googleApiKey, query, conversationHistory);
+            executeResearch(apiKey, googleApiKey, query, conversationHistory, messageDiv, abortController.signal);
         }
     });
+
 
     async function executeSearch(apiKey, googleApiKey, query, conversationHistory, messageDiv, signal) {
         const contentDiv = messageDiv.querySelector('.message-content');
