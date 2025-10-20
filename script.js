@@ -509,9 +509,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     query: query,
                     api_key: apiKey,
                     google_api_key: googleApiKey,
-                    conversation_history: conversationHistory,
-                    signal: abortController.signal
-                })
+                    conversation_history: conversationHistory
+                }),
+                signal: abortController.signal
             });
 
             const reader = response.body.getReader();
@@ -1270,15 +1270,15 @@ document.addEventListener('DOMContentLoaded', () => {
             api_key: apiKey,
             google_api_key: googleApiKey,
             query: query,
-            conversation_history: conversationHistory,
-            signal: abortController.signal
+            conversation_history: conversationHistory
         });
 
         try {
             const response = await fetch(`${API_BASE_URL}/search`, {
                 method: 'POST',
                 headers,
-                body
+                body,
+                signal: abortController.signal
             });
 
             // Check if it's a streaming response
@@ -1402,9 +1402,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     query: query,
                     api_key: apiKey,
                     google_api_key: googleApiKey,
-                    conversation_history: conversationHistory,
-                    signal: abortController.signal
-                })
+                    conversation_history: conversationHistory
+                }),
+                signal: abortController.signal
             });
 
             const reader = response.body.getReader();
