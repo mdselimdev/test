@@ -283,17 +283,17 @@ document.addEventListener('DOMContentLoaded', () => {
             eventSource.close();
             eventSource = null;
         }
-        
+    
         // NEW: If there's a current streaming div without action buttons, add them
         if (currentStreamingDiv) {
             const contentDiv = currentStreamingDiv.querySelector('.message-content');
             let answerTab = contentDiv?.querySelector('.response-content');
-            
+        
             // If response-content doesn't exist (stopped during spinner), create it
             if (!answerTab) {
                 const query = currentStreamingDiv.dataset.query || '';
                 const mode = currentStreamingDiv.dataset.mode || 'search';
-                
+            
                 // Remove any status spinners
                 const statusDiv = contentDiv.querySelector('.search-status');
                 if (statusDiv) statusDiv.remove();
@@ -305,36 +305,47 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Create the tab structure
                 const tabsContainer = document.createElement('div');
                 tabsContainer.className = 'response-tabs';
-                tabsContainer.innerHTML = `<button class="response-tab active" data-tab="answer">Answer</button>`;
+            
+                // --- CHANGE HERE ---
+                // Set tab based on the mode that was running
+                const activeTabName = (mode === 'research') ? 'research' : 'answer';
+                const activeTabLabel = (mode === 'research') ? 'Research' : 'Answer';
+                tabsContainer.innerHTML = `<button class="response-tab active" data-tab="${activeTabName}">${activeTabLabel}</button>`;
+                // --- END CHANGE ---
+            
                 contentDiv.appendChild(tabsContainer);
-                
+            
                 // Create the answer tab content
                 answerTab = document.createElement('div');
                 answerTab.className = 'tab-content response-content active';
-                answerTab.dataset.tab = 'answer';
+                
+                // --- CHANGE HERE ---
+                answerTab.dataset.tab = activeTabName;
+                // --- END CHANGE ---
+            
                 answerTab.innerHTML = '<p style="color: var(--text-secondary);">Generation stopped.</p>';
                 contentDiv.appendChild(answerTab);
-                
+            
                 // Add action buttons
                 addActionButtons(answerTab, 'Generation stopped.', [], query, false);
             } else if (!answerTab.querySelector('.message-actions')) {
                 // Response-content exists but no buttons yet
                 const query = currentStreamingDiv.dataset.query || '';
-                
+            
                 // Remove any status spinners
                 const statusDiv = contentDiv.querySelector('.search-status');
                 if (statusDiv) statusDiv.remove();
-                
+            
                 // Add a stopped message if answer tab is empty
                 if (!answerTab.textContent.trim()) {
                     answerTab.innerHTML = '<p style="color: var(--text-secondary);">Generation stopped.</p>';
                 }
-                
+            
                 // Add action buttons
                 addActionButtons(answerTab, answerTab.textContent, [], query, false);
             }
         }
-        
+    
         setSendButtonState(false);
         showNotification('Generation stopped', 'error');
     }
