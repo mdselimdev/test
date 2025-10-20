@@ -362,7 +362,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const query = queryInput.value.trim();
         if (!query) return;
-        if (eventSource) eventSource.close();
         if (abortController) abortController.abort();
         const apiKey = localStorage.getItem('gemini_api_key');
         const googleApiKey = localStorage.getItem('google_api_key');
