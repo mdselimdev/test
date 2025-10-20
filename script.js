@@ -1380,38 +1380,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     }
                 }
-            } else {
-                // Handle non-streaming JSON response (for categories C, E, F)
-                const result = await response.json();
-            
-                if (!response.ok) {
-                    const errorMessage = result.message || result.error || 'An unexpected error occurred. Please try again.';
-                    searchStatus.remove();
-                    await streamResponse(messageDiv, errorMessage, [], query, 'search');
-                    currentStreamingDiv = null;
-                    setSendButtonState(false);
-                    return;
-                }
-            
-                // Remove status for non-search categories
-                searchStatus.remove();
-            
-                if (result.sources) {
-                    allSourcesList = result.sources;
-                    result.sources.forEach((source, index) => {
-                        sourcesMap[index + 1] = source;
-                    });
-                }
-            
-                if (result.articles) {
-                    allArticlesList = result.articles;
-                }
-            
-                if (result.books) {
-                    allBooksList = result.books;
-                }
-            
-                await streamResponse(messageDiv, result.answer || result.final_answer, result.sources, query, 'search', result.show_ask_scholar_button);
             }
         } catch (error) {
             if (error.name === 'AbortError') {
