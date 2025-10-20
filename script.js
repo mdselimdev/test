@@ -342,6 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
         wordCount = 0;
         lastScrollPosition = chatMessages.scrollHeight;
         isStreamingStopped = false;
+        abortController = new AbortController(); // <-- ADD THIS LINE
         setSendButtonState(true);
 
         const conversationHistory = extractContextFromDOM(userMessageDiv);
@@ -379,7 +380,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch(`${API_BASE_URL}/search`, {
                 method: 'POST',
                 headers,
-                body
+                body,
+                signal: abortController.signal
             });
 
             // Check if it's a streaming response
@@ -507,7 +509,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     query: query,
                     api_key: apiKey,
                     google_api_key: googleApiKey,
-                    conversation_history: conversationHistory
+                    conversation_history: conversationHistory,
+                    signal: abortController.signal
                 })
             });
 
@@ -593,7 +596,7 @@ document.addEventListener('DOMContentLoaded', () => {
             contentDiv.textContent = content;
             addUserActionButtons(messageDiv, content, modeOrLoadingType || 'search');
         } else if (modeOrLoadingType === 'search') {
-            contentDiv.innerHTML = '<div class="search-status"><div class="status-spinner"></div><span>Searching Islamic Sources...</span></div>';
+            contentDiv.innerHTML = '';
         } else if (modeOrLoadingType === 'research') {
             contentDiv.innerHTML = '';
         } else {
@@ -1183,9 +1186,6 @@ document.addEventListener('DOMContentLoaded', () => {
         while (contentDiv.firstChild) {
             contentDiv.removeChild(contentDiv.firstChild);
         }
-        if (newMode === 'search') {
-            contentDiv.innerHTML = `<div class="search-status"><div class="status-spinner"></div><span class="status-text">Analyzing question...</span></div>`;
-        }
 
         messageDiv.dataset.mode = newMode;
         sourcesMap = {};
@@ -1226,9 +1226,6 @@ document.addEventListener('DOMContentLoaded', () => {
         while (contentDiv.firstChild) {
             contentDiv.removeChild(contentDiv.firstChild);
         }
-        if (workflow === 'search') {
-            contentDiv.innerHTML = `<div class="search-status"><div class="status-spinner"></div><span class="status-text">Analyzing question...</span></div>`;
-        }
         responseDiv.dataset.query = newQuery;
         responseDiv.dataset.mode = workflow;
         sourcesMap = {};
@@ -1268,7 +1265,8 @@ document.addEventListener('DOMContentLoaded', () => {
             api_key: apiKey,
             google_api_key: googleApiKey,
             query: query,
-            conversation_history: conversationHistory
+            conversation_history: conversationHistory,
+            signal: abortController.signal
         });
 
         try {
@@ -1399,7 +1397,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     query: query,
                     api_key: apiKey,
                     google_api_key: googleApiKey,
-                    conversation_history: conversationHistory
+                    conversation_history: conversationHistory,
+                    signal: abortController.signal
                 })
             });
 
