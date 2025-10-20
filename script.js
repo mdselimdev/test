@@ -353,19 +353,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    async function handleSearchMode(apiKey, googleApiKey, query, conversationHistory) {
-        const messageDiv = addMessage('', 'assistant', 'search');
-        messageDiv.dataset.query = query;
-        messageDiv.dataset.mode = 'search';
-        currentStreamingDiv = messageDiv;
-
+    async function executeSearch(apiKey, googleApiKey, query, conversationHistory, messageDiv, signal) {
         const contentDiv = messageDiv.querySelector('.message-content');
     
-        // Create search status div
-        const searchStatus = document.createElement('div');
-        searchStatus.className = 'search-status';
-        searchStatus.innerHTML = '<div class="status-spinner"></div><span class="status-text">Analyzing question...</span>';
-        contentDiv.appendChild(searchStatus);
+        // Find the search status div (from addMessage or regenerateResponse) and update it
+        let searchStatus = contentDiv.querySelector('.search-status');
+        if (searchStatus) {
+            searchStatus.querySelector('.status-text').textContent = 'Analyzing question...';
+        } else {
+            // Fallback in case it wasn't pre-filled (e.g., regeneration logic changes)
+            contentDiv.innerHTML = '<div class="search-status"><div class="status-spinner"></div><span class="status-text">Analyzing question...</span></div>';
+            searchStatus = contentDiv.querySelector('.search-status');
+        }
 
         const headers = {'Content-Type': 'application/json'};
         const body = JSON.stringify({
@@ -379,7 +378,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch(`${API_BASE_URL}/search`, {
                 method: 'POST',
                 headers,
-                body
+                body,
+                signal // <-- BUGFIX: Pass the abort signal
             });
 
             // Check if it's a streaming response
@@ -450,12 +450,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     const errorMessage = result.message || result.error || 'An unexpected error occurred. Please try again.';
                     searchStatus.remove();
                     await streamResponse(messageDiv, errorMessage, [], query, 'search');
-                    currentStreamingDiv = null;
-                    setSendButtonState(false);
-                    return;
+                    return; // Don't proceed to finally block yet
                 }
             
-            // Remove status for non-search categories
+                // Remove status for non-search categories
                 searchStatus.remove();
             
                 if (result.sources) {
@@ -477,10 +475,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             if (error.name === 'AbortError') {
+                console.log('Search fetch aborted');
                 const searchStatusDiv = contentDiv.querySelector('.search-status');
                 if (searchStatusDiv) searchStatusDiv.remove();
             } else {
-                const errorMessage = error.message || 'I encountered an issue processing your request. Please try again.';
+                const errorMessage = error.message || 'I encountered an issue. Please try again.';
                 const searchStatusDiv = contentDiv.querySelector('.search-status');
                 if (searchStatusDiv) searchStatusDiv.remove();
                 await streamResponse(messageDiv, errorMessage, [], query, 'search');
@@ -491,11 +490,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function handleResearchMode(apiKey, googleApiKey, query, conversationHistory) {
-        const messageDiv = addMessage('', 'assistant', 'research');
-        messageDiv.dataset.query = query;
-        messageDiv.dataset.mode = 'research';
-        currentStreamingDiv = messageDiv;
+    async function executeResearch(apiKey, googleApiKey, query, conversationHistory, messageDiv, signal) {
+        const contentDiv = messageDiv.querySelector('.message-content');
+        
+        // Clear content for regeneration, or start fresh
+        contentDiv.innerHTML = ''; 
 
         try {
             const response = await fetch(`${API_BASE_URL}/research`, {
@@ -508,14 +507,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     api_key: apiKey,
                     google_api_key: googleApiKey,
                     conversation_history: conversationHistory
-                })
+                }),
+                signal // <-- BUGFIX: Pass the abort signal
             });
 
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
             const stepsContainer = document.createElement('div');
             stepsContainer.className = 'research-steps';
-            messageDiv.querySelector('.message-content').appendChild(stepsContainer);
+            contentDiv.appendChild(stepsContainer); // Append to the now-empty contentDiv
             let currentStepDiv = null;
             let buffer = '';
 
@@ -553,14 +553,11 @@ document.addEventListener('DOMContentLoaded', () => {
                                 if (result.books) {
                                     allBooksList = result.books;
                                 }
-                                // Pass the new flag to the streamResponse function
                                 await streamResponse(messageDiv, result.final_answer, result.sources, query, 'research', result.show_ask_scholar_button);
                             } else if (result.error) {
                                 stepsContainer.remove();
                                 const errorMessage = result.message || result.error || 'An error occurred during research.';
                                 await streamResponse(messageDiv, errorMessage, [], query, 'research');
-                                currentStreamingDiv = null;
-                                setSendButtonState(false);
                             }
                         } catch (e) {
                             console.error('Error parsing JSON:', e);
@@ -569,7 +566,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         } catch (error) {
-            const contentDiv = messageDiv.querySelector('.message-content');
+            if (error.name === 'AbortError') {
+                console.log('Research fetch aborted');
+            }
             const stepsContainer = contentDiv.querySelector('.research-steps');
             if (stepsContainer) stepsContainer.remove();
 
@@ -580,7 +579,7 @@ document.addEventListener('DOMContentLoaded', () => {
             setSendButtonState(false);
         }
     }
-
+    
     function addMessage(content, role, modeOrLoadingType = null) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message message-${role}`;
