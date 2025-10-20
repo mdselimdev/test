@@ -1,5 +1,5 @@
 // Backend API Configuration
-const API_BASE_URL = 'https://perspicacity.onrender.com';
+const API_BASE_URL = 'https://perspicacitybackend.onrender.com';
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
