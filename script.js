@@ -305,16 +305,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Create the tab structure
                 const tabsContainer = document.createElement('div');
                 tabsContainer.className = 'response-tabs';
-                tabsContainer.innerHTML = `<button class="response-tab active" data-tab="answer">Answer</button>`;
+                // Determine which tab should be active based on mode
+                const isResearch = mode === 'research';
+                tabsContainer.innerHTML = `<button class="tab-btn ${!isResearch ? 'active' : ''}" data-tab="answer">Answer</button>
+                <button class="tab-btn ${isResearch ? 'active' : ''}" data-tab="research">Research</button>`;
                 contentDiv.appendChild(tabsContainer);
-                
+
                 // Create the answer tab content
                 answerTab = document.createElement('div');
-                answerTab.className = 'tab-content response-content active';
+                answerTab.className = `tab-content response-content ${!isResearch ? 'active' : ''}`;
                 answerTab.dataset.tab = 'answer';
-                answerTab.innerHTML = '<p style="color: var(--text-secondary);">Generation stopped.</p>';
+                answerTab.innerHTML = '<p><em>Generation stopped.</em></p>';
                 contentDiv.appendChild(answerTab);
-                
+
+                // Create the research tab content
+                const researchTab = document.createElement('div');
+                researchTab.className = `tab-content ${isResearch ? 'active' : ''}`;
+                researchTab.dataset.tab = 'research';
+                researchTab.innerHTML = '<p><em>Generation stopped.</em></p>';
+                contentDiv.appendChild(researchTab);
                 // Add action buttons
                 addActionButtons(answerTab, 'Generation stopped.', [], query, false);
             } else if (!answerTab.querySelector('.message-actions')) {
