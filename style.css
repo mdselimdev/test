@@ -1345,8 +1345,8 @@ body::before {
   justify-content: center;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4px 12px rgba(32, 128, 141, 0.4);
-  /* ADDED padding to match .workflow-btn */
-  padding: 0.625rem 0.75rem;
+  /* CHANGED padding to be equal (matches workflow-btn vertical padding) */
+  padding: 0.625rem;
 }
 
 .send-btn:hover:not(:disabled) {
