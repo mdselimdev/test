@@ -1335,15 +1335,18 @@ body::before {
   background: linear-gradient(135deg, var(--accent-primary), var(--accent-hover));
   border: none;
   color: white;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
+  /* REMOVED width: 44px; */
+  /* REMOVED height: 44px; */
+  /* CHANGED border-radius: 50%; */
+  border-radius: 10px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4px 12px rgba(32, 128, 141, 0.4);
+  /* ADDED padding to match .workflow-btn */
+  padding: 0.625rem 0.75rem;
 }
 
 .send-btn:hover:not(:disabled) {
