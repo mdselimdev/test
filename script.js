@@ -438,11 +438,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const contentDiv = messageDiv.querySelector('.message-content');
     
-        // Create search status div
-        const searchStatus = document.createElement('div');
-        searchStatus.className = 'search-status';
-        searchStatus.innerHTML = '<div class="status-spinner"></div><span class="status-text">Analyzing question...</span>';
-        contentDiv.appendChild(searchStatus);
+        // --- CHANGE: Initialize status div tracker ---
+        let searchStatusDiv = null; 
+    
+        // --- REMOVED: Initial creation of search status div ---
 
         const headers = {'Content-Type': 'application/json'};
         const body = JSON.stringify({
@@ -485,9 +484,17 @@ document.addEventListener('DOMContentLoaded', () => {
                             try {
                                 const result = JSON.parse(data);
                             
-                                // Update status text
+                                // --- CHANGE: Dynamically create and update status ---
                                 if (result.status) {
-                                    const statusText = searchStatus.querySelector('.status-text');
+                                    if (!searchStatusDiv) {
+                                        // First status received, create the element
+                                        searchStatusDiv = document.createElement('div');
+                                        searchStatusDiv.className = 'search-status';
+                                        searchStatusDiv.innerHTML = '<div class="status-spinner"></div><span class="status-text"></span>';
+                                        contentDiv.appendChild(searchStatusDiv);
+                                    }
+                                    // Update the text
+                                    const statusText = searchStatusDiv.querySelector('.status-text');
                                     if (statusText) {
                                         statusText.textContent = result.status;
                                     }
@@ -495,7 +502,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             
                                 // Handle final answer
                                 if (result.final_answer) {
-                                    searchStatus.remove();
+                                    // --- CHANGE: Conditional remove ---
+                                    if (searchStatusDiv) searchStatusDiv.remove();
                                 
                                     if (result.sources) {
                                         allSourcesList = result.sources;
@@ -523,11 +531,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             if (error.name === 'AbortError') {
-                const searchStatusDiv = contentDiv.querySelector('.search-status');
+                // --- CHANGE: Conditional remove ---
                 if (searchStatusDiv) searchStatusDiv.remove();
             } else {
                 const errorMessage = error.message || 'I encountered an issue processing your request. Please try again.';
-                const searchStatusDiv = contentDiv.querySelector('.search-status');
+                // --- CHANGE: Conditional remove ---
                 if (searchStatusDiv) searchStatusDiv.remove();
                 await streamResponse(messageDiv, errorMessage, [], query, 'search');
             }
@@ -1305,11 +1313,11 @@ document.addEventListener('DOMContentLoaded', () => {
     async function handleSearchModeRegenerate(apiKey, googleApiKey, query, messageDiv, conversationHistory) {
         const contentDiv = messageDiv.querySelector('.message-content');
         abortController = new AbortController();
-        // Create search status div
-        const searchStatus = document.createElement('div');
-        searchStatus.className = 'search-status';
-        searchStatus.innerHTML = '<div class="status-spinner"></div><span class="status-text">Analyzing question...</span>';
-        contentDiv.appendChild(searchStatus);
+
+        // --- CHANGE: Initialize status div tracker ---
+        let searchStatusDiv = null;
+
+        // --- REMOVED: Initial creation of search status div ---
 
         const headers = {'Content-Type': 'application/json'};
         const body = JSON.stringify({
@@ -1352,9 +1360,17 @@ document.addEventListener('DOMContentLoaded', () => {
                             try {
                                 const result = JSON.parse(data);
                             
-                                // Update status text
+                                // --- CHANGE: Dynamically create and update status ---
                                 if (result.status) {
-                                    const statusText = searchStatus.querySelector('.status-text');
+                                    if (!searchStatusDiv) {
+                                        // First status received, create the element
+                                        searchStatusDiv = document.createElement('div');
+                                        searchStatusDiv.className = 'search-status';
+                                        searchStatusDiv.innerHTML = '<div class="status-spinner"></div><span class="status-text"></span>';
+                                        contentDiv.appendChild(searchStatusDiv);
+                                    }
+                                    // Update the text
+                                    const statusText = searchStatusDiv.querySelector('.status-text');
                                     if (statusText) {
                                         statusText.textContent = result.status;
                                     }
@@ -1362,7 +1378,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             
                                 // Handle final answer
                                 if (result.final_answer) {
-                                    searchStatus.remove();
+                                    // --- CHANGE: Conditional remove ---
+                                    if (searchStatusDiv) searchStatusDiv.remove();
                                 
                                     if (result.sources) {
                                         allSourcesList = result.sources;
@@ -1390,11 +1407,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             if (error.name === 'AbortError') {
-                const searchStatusDiv = contentDiv.querySelector('.search-status');
+                // --- CHANGE: Conditional remove ---
                 if (searchStatusDiv) searchStatusDiv.remove();
             } else {
                 const errorMessage = error.message || 'I encountered an issue. Please try again.';
-                const searchStatusDiv = contentDiv.querySelector('.search-status');
+                // --- CHANGE: Conditional remove ---
                 if (searchStatusDiv) searchStatusDiv.remove();
                 await streamResponse(messageDiv, errorMessage, [], query, 'search');
             }
