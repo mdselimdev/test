@@ -50,10 +50,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     loadSettings();
 
-    chatMessagies.addEventListener('scroll', () => {
+    chatMessages.addEventListener('scroll', () => {
         const scrollTop = chatMessages.scrollTop;
         const scrollHeight = chatMessages.scrollHeight;
         const clientHeight = chatMessages.clientHeight;
+
+        // --- ADDED LOGIC ---
+        // This is the key: we check if the user is more than 100px
+        // away from the bottom. If they are, we set isUserScrolledUp to true.
+        // If they scroll back to the bottom, we set it to false,
+        // which re-enables the auto-scroll.
+        if (scrollHeight - scrollTop - clientHeight > 100) {
+            isUserScrolledUp = true;
+        } else {
+            isUserScrolledUp = false;
+        }
+        // --- END ADDED LOGIC ---
 
         // Only show if content is longer than screen
         if (scrollHeight <= clientHeight) {
@@ -80,6 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
             scrollToBottomBtn.classList.add('hidden');
         }
     });
+
 
     scrollToBottomBtn.addEventListener('click', () => {
         const lastUserMessage = Array.from(chatMessages.querySelectorAll('.message-user')).pop();
