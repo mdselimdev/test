@@ -62,10 +62,13 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Find the last user message (last prompt)
-        const lastUserMessage = Array.from(chatMessages.querySelectorAll('.message-user')).pop();
+        // Find all user messages
+        const allUserMessages = Array.from(chatMessages.querySelectorAll('.message-user'));
+        const messageCount = allUserMessages.length;
+        const lastUserMessage = messageCount > 0 ? allUserMessages[messageCount - 1] : null;
 
-        if (lastUserMessage) {
+        // Only show if there's a last message AND more than 1 message total
+        if (lastUserMessage && messageCount > 1) { 
             const headerHeight = document.querySelector('.chat-header').offsetHeight;
             const lastPromptTop = lastUserMessage.offsetTop;
             const userScrollPosition = scrollTop + headerHeight;
@@ -77,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 scrollToBottomBtn.classList.add('hidden');
             }
         } else {
-            // No messages yet, hide button
+            // No messages yet, or only one message, hide button
             scrollToBottomBtn.classList.add('hidden');
         }
     });
