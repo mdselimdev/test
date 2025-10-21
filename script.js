@@ -40,7 +40,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let researchStepsList = [];
     let isGenerating = false;
     let wordCount = 0;
-    let lastScrollPosition = 0;
     let isUserScrolledUp = false;
     let currentStreamingDiv = null;
     let isStreamingStopped = false;
@@ -51,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     loadSettings();
 
-    chatMessages.addEventListener('scroll', () => {
+    chatMessagies.addEventListener('scroll', () => {
         const scrollTop = chatMessages.scrollTop;
         const scrollHeight = chatMessages.scrollHeight;
         const clientHeight = chatMessages.clientHeight;
@@ -405,7 +404,6 @@ document.addEventListener('DOMContentLoaded', () => {
         allBooksList = []; // ADD THIS
         researchStepsList = [];
         wordCount = 0;
-        lastScrollPosition = chatMessages.scrollHeight;
         isStreamingStopped = false;
         abortController = new AbortController(); // <-- ADD THIS LINE
         setSendButtonState(true);
@@ -823,12 +821,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function periodicScroll() {
-        if (isUserScrolledUp) return;
-        const currentHeight = chatMessages.scrollHeight;
-        if (currentHeight - lastScrollPosition > 500) {
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-            lastScrollPosition = currentHeight;
-        }
+        // 1. If the user has scrolled up, do nothing. This gives them freedom.
+        if (isUserScrolledUp) return; 
+    
+        // 2. If they are at the bottom, scroll to the new bottom.
+        // This is called periodically (every 50 words or every research step)
+        // ensuring the scroll follows the streaming text.
+        chatMessages.scrollTo({
+            top: chatMessages.scrollHeight,
+            behavior: 'auto' // 'auto' is instant, 'smooth' can lag behind streaming
+        });
     }
 
     async function streamResponse(messageDiv, text, sources, originalQuery, mode, showAskButton = false) {
@@ -1232,7 +1234,6 @@ document.addEventListener('DOMContentLoaded', () => {
         allBooksList = [];
         researchStepsList = [];
         wordCount = 0;
-        lastScrollPosition = chatMessages.scrollHeight;
         isUserScrolledUp = false;
         currentStreamingDiv = messageDiv;
         isStreamingStopped = false;
@@ -1272,7 +1273,6 @@ document.addEventListener('DOMContentLoaded', () => {
         allBooksList = [];
         researchStepsList = [];
         wordCount = 0;
-        lastScrollPosition = chatMessages.scrollHeight;
         isUserScrolledUp = false;
         currentStreamingDiv = responseDiv;
         isStreamingStopped = false;
