@@ -110,6 +110,47 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 100);
     }
 
+    function adjustChatPadding() {
+        // Run this after a slight delay to allow DOM to update
+        setTimeout(() => {
+            const allUserMessages = Array.from(chatMessages.querySelectorAll('.message-user'));
+            const lastUserMessage = allUserMessages.length > 0 ? allUserMessages[allUserMessages.length - 1] : null;
+
+            if (!lastUserMessage || chatMessages.classList.contains('has-welcome')) {
+                 chatMessages.style.paddingBottom = ''; // Reset to CSS default
+                 return; // No messages, or welcome screen is up
+            }
+
+            const headerHeight = document.querySelector('.chat-header').offsetHeight;
+            const chatVisibleHeight = chatMessages.clientHeight; // Height of the scrollable viewport
+            
+            // This is the scrollTop we want to be able to achieve
+            const targetScrollTop = lastUserMessage.offsetTop - headerHeight - 20;
+
+            // This is the scrollHeight required to achieve that scrollTop
+            const requiredScrollHeight = targetScrollTop + chatVisibleHeight;
+
+            // Get current computed padding-bottom (the baseline from CSS)
+            const currentComputedPaddingBottom = parseFloat(getComputedStyle(chatMessages).paddingBottom);
+            
+            // Get the scrollHeight *without* the existing dynamic padding
+            // This is the height of all messages + padding-top
+            const contentHeight = chatMessages.scrollHeight - currentComputedPaddingBottom;
+
+            // Get the base padding (e.g., '2rem')
+            const basePadding = parseFloat(getComputedStyle(chatMessages).paddingTop); // This is '2rem' (32px)
+            
+            // This is the minimum padding we need to meet the scroll target
+            const requiredPadding = requiredScrollHeight - contentHeight;
+            
+            // We want the padding to be *at least* the base padding,
+            // but larger if needed to meet the scroll target.
+            const newPaddingBottom = Math.max(basePadding, requiredPadding);
+
+            chatMessages.style.paddingBottom = `${newPaddingBottom}px`;
+        }, 100); // Delay to ensure DOM is rendered
+    }
+
     function extractContextFromDOM(currentMessageDiv) {
         const context = [];
         let previousMessage = currentMessageDiv ? currentMessageDiv.previousElementSibling : null;
@@ -335,6 +376,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
                 // Add action buttons
                 addActionButtons(answerTab, 'Generation stopped.', [], query, false);
+                adjustChatPadding();
             } else if (!answerTab.querySelector('.message-actions')) {
                 // Response-content exists but no buttons yet
                 const query = currentStreamingDiv.dataset.query || '';
@@ -350,6 +392,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
                 // Add action buttons
                 addActionButtons(answerTab, answerTab.textContent, [], query, false);
+                adjustChatPadding();
             }
         }
     
@@ -954,7 +997,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     
         addActionButtons(answerTabContent, processedText, sources, originalQuery, showAskButton);
-
+        
+        adjustChatPadding();
         currentStreamingDiv = null;
         setSendButtonState(false);
     }
