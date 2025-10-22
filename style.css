@@ -344,35 +344,6 @@ body::before {
   transform: rotate(90deg);
 }
 
-.donate-btn {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
-    background: var(--accent-primary);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.donate-btn:hover {
-    background: var(--accent-hover);
-    transform: translateY(-1px);
-}
-
-.donate-btn svg {
-    flex-shrink: 0;
-}
-
-.donate-btn span {
-    white-space: nowrap;
-}
-
 @media (max-width: 768px) {
     .donate-btn span {
         display: none;
