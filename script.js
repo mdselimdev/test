@@ -2,7 +2,7 @@ const API_BASE_URL = 'https://perspicacity.onrender.com';
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js', { scope: '/' })
+        navigator.serviceWorker.register('/sw.js?v=1', { scope: '/' })
             .then(registration => {
                 console.log('ServiceWorker registration successful with scope: ', registration.scope);
             })
