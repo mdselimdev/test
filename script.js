@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://perspicacity.onrender.com';
+const API_BASE_URL = 'https://perspicacitybackend.onrender.com';
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
@@ -438,10 +438,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const contentDiv = messageDiv.querySelector('.message-content');
     
-        // --- CHANGE: Initialize status div tracker ---
         let searchStatusDiv = null; 
-    
-        // --- REMOVED: Initial creation of search status div ---
+        
+        // --- NEW: Timeout logic ---
+        let timeoutId = null;
+        let didTimeout = false;
+        timeoutId = setTimeout(() => {
+            didTimeout = true;
+            if (abortController) {
+                abortController.abort(); // Trigger the abort
+            }
+        }, 8000); // --- CHANGED: 8-second timeout for cold start ---
+        // --- END NEW ---
 
         const headers = {'Content-Type': 'application/json'};
         const body = JSON.stringify({
@@ -459,17 +467,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 signal: abortController.signal
             });
 
-            // Check if it's a streaming response
             const contentType = response.headers.get('content-type');
         
             if (contentType && contentType.includes('text/event-stream')) {
-                // Handle streaming response
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
                 let buffer = '';
 
                 while (true) {
                     const { done, value } = await reader.read();
+                    
+                    // --- NEW: Server is alive, clear timeout on first read ---
+                    clearTimeout(timeoutId);
+                    // --- END NEW ---
+
                     if (done) break;
 
                     buffer += decoder.decode(value, { stream: true });
@@ -484,25 +495,20 @@ document.addEventListener('DOMContentLoaded', () => {
                             try {
                                 const result = JSON.parse(data);
                             
-                                // --- CHANGE: Dynamically create and update status ---
                                 if (result.status) {
                                     if (!searchStatusDiv) {
-                                        // First status received, create the element
                                         searchStatusDiv = document.createElement('div');
                                         searchStatusDiv.className = 'search-status';
                                         searchStatusDiv.innerHTML = '<div class="status-spinner"></div><span class="status-text"></span>';
                                         contentDiv.appendChild(searchStatusDiv);
                                     }
-                                    // Update the text
                                     const statusText = searchStatusDiv.querySelector('.status-text');
                                     if (statusText) {
                                         statusText.textContent = result.status;
                                     }
                                 }
                             
-                                // Handle final answer
                                 if (result.final_answer) {
-                                    // --- CHANGE: Conditional remove ---
                                     if (searchStatusDiv) searchStatusDiv.remove();
                                 
                                     if (result.sources) {
@@ -530,16 +536,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         } catch (error) {
-            if (error.name === 'AbortError') {
-                // --- CHANGE: Conditional remove ---
-                if (searchStatusDiv) searchStatusDiv.remove();
+            clearTimeout(timeoutId);
+            if (searchStatusDiv) searchStatusDiv.remove(); 
+            
+            let errorMessage;
+            if ((error.name === 'AbortError' && didTimeout) || error.name === 'TypeError') {
+                // --- CHANGED: Friendlier error message for timeout OR network error ---
+                errorMessage = "I couldn't get a response from the server. It might be busy or just waking up. Please try sending your message again in a moment.";
+                await streamResponse(messageDiv, errorMessage, [], query, 'search');
+            } else if (error.name === 'AbortError') {
+                // This was a user "Stop" click, do nothing
             } else {
-                const errorMessage = error.message || 'I encountered an issue processing your request. Please try again.';
-                // --- CHANGE: Conditional remove ---
-                if (searchStatusDiv) searchStatusDiv.remove();
+                // Other general error
+                errorMessage = error.message || 'I encountered an issue processing your request. Please try again.';
                 await streamResponse(messageDiv, errorMessage, [], query, 'search');
             }
         } finally {
+            clearTimeout(timeoutId);
             currentStreamingDiv = null;
             setSendButtonState(false);
         }
@@ -550,6 +563,17 @@ document.addEventListener('DOMContentLoaded', () => {
         messageDiv.dataset.query = query;
         messageDiv.dataset.mode = 'research';
         currentStreamingDiv = messageDiv;
+
+        // --- NEW: Timeout logic ---
+        let timeoutId = null;
+        let didTimeout = false;
+        timeoutId = setTimeout(() => {
+            didTimeout = true;
+            if (abortController) {
+                abortController.abort(); // Trigger the abort
+            }
+        }, 8000); // --- CHANGED: 8-second timeout for cold start ---
+        // --- END NEW ---
 
         try {
             const response = await fetch(`${API_BASE_URL}/research`, {
@@ -576,6 +600,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             while (true) {
                 const { done, value } = await reader.read();
+
+                // --- NEW: Server is alive, clear timeout on first read ---
+                clearTimeout(timeoutId);
+                // --- END NEW ---
+
                 if (done) break;
 
                 buffer += decoder.decode(value, { stream: true });
@@ -608,7 +637,6 @@ document.addEventListener('DOMContentLoaded', () => {
                                 if (result.books) {
                                     allBooksList = result.books;
                                 }
-                                // Pass the new flag to the streamResponse function
                                 await streamResponse(messageDiv, result.final_answer, result.sources, query, 'research', result.show_ask_scholar_button);
                             } else if (result.error) {
                                 stepsContainer.remove();
@@ -624,18 +652,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         } catch (error) {
+            clearTimeout(timeoutId);
             const contentDiv = messageDiv.querySelector('.message-content');
             const stepsContainer = contentDiv.querySelector('.research-steps');
             if (stepsContainer) stepsContainer.remove();
-
-            // Handle user-triggered stop
-            if (error.name === 'AbortError') {
-                return; // Stop quietly
+            
+            let errorMessage;
+            if ((error.name === 'AbortError' && didTimeout) || error.name === 'TypeError') {
+                // --- CHANGED: Friendlier error message for timeout OR network error ---
+                errorMessage = "I couldn't get a response from the server. It might be busy or just waking up. Please try sending your message again in a moment.";
+                await streamResponse(messageDiv, errorMessage, [], query, 'research');
+            } else if (error.name === 'AbortError') {
+                // This was a user "Stop" click, do nothing
+            } else {
+                // Other general error
+                errorMessage = error.message || 'Connection error occurred. Please try again.';
+                await streamResponse(messageDiv, errorMessage, [], query, 'research');
             }
-
-            const errorMessage = error.message || 'Connection error occurred. Please try again.';
-            await streamResponse(messageDiv, errorMessage, [], query, 'research');
         } finally {
+            clearTimeout(timeoutId);
             currentStreamingDiv = null;
             setSendButtonState(false);
         }
@@ -1314,10 +1349,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const contentDiv = messageDiv.querySelector('.message-content');
         abortController = new AbortController();
 
-        // --- CHANGE: Initialize status div tracker ---
         let searchStatusDiv = null;
 
-        // --- REMOVED: Initial creation of search status div ---
+        // --- NEW: Timeout logic ---
+        let timeoutId = null;
+        let didTimeout = false;
+        timeoutId = setTimeout(() => {
+            didTimeout = true;
+            if (abortController) {
+                abortController.abort(); // Trigger the abort
+            }
+        }, 8000); // --- CHANGED: 8-second timeout for cold start ---
+        // --- END NEW ---
 
         const headers = {'Content-Type': 'application/json'};
         const body = JSON.stringify({
@@ -1335,17 +1378,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 signal: abortController.signal
             });
 
-            // Check if it's a streaming response
             const contentType = response.headers.get('content-type');
         
             if (contentType && contentType.includes('text/event-stream')) {
-                // Handle streaming response
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
                 let buffer = '';
 
                 while (true) {
                     const { done, value } = await reader.read();
+
+                    // --- NEW: Server is alive, clear timeout on first read ---
+                    clearTimeout(timeoutId);
+                    // --- END NEW ---
+
                     if (done) break;
 
                     buffer += decoder.decode(value, { stream: true });
@@ -1360,25 +1406,20 @@ document.addEventListener('DOMContentLoaded', () => {
                             try {
                                 const result = JSON.parse(data);
                             
-                                // --- CHANGE: Dynamically create and update status ---
                                 if (result.status) {
                                     if (!searchStatusDiv) {
-                                        // First status received, create the element
                                         searchStatusDiv = document.createElement('div');
                                         searchStatusDiv.className = 'search-status';
                                         searchStatusDiv.innerHTML = '<div class="status-spinner"></div><span class="status-text"></span>';
                                         contentDiv.appendChild(searchStatusDiv);
                                     }
-                                    // Update the text
                                     const statusText = searchStatusDiv.querySelector('.status-text');
                                     if (statusText) {
                                         statusText.textContent = result.status;
                                     }
                                 }
                             
-                                // Handle final answer
                                 if (result.final_answer) {
-                                    // --- CHANGE: Conditional remove ---
                                     if (searchStatusDiv) searchStatusDiv.remove();
                                 
                                     if (result.sources) {
@@ -1406,16 +1447,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         } catch (error) {
-            if (error.name === 'AbortError') {
-                // --- CHANGE: Conditional remove ---
-                if (searchStatusDiv) searchStatusDiv.remove();
+            clearTimeout(timeoutId);
+            if (searchStatusDiv) searchStatusDiv.remove();
+            
+            let errorMessage;
+            if ((error.name === 'AbortError' && didTimeout) || error.name === 'TypeError') {
+                // --- CHANGED: Friendlier error message for timeout OR network error ---
+                errorMessage = "I couldn't get a response from the server. It might be busy or just waking up. Please try sending your message again in a moment.";
+                await streamResponse(messageDiv, errorMessage, [], query, 'search');
+            } else if (error.name === 'AbortError') {
+                // This was a user "Stop" click, do nothing
             } else {
-                const errorMessage = error.message || 'I encountered an issue. Please try again.';
-                // --- CHANGE: Conditional remove ---
-                if (searchStatusDiv) searchStatusDiv.remove();
+                // Other general error
+                errorMessage = error.message || 'I encountered an issue. Please try again.';
                 await streamResponse(messageDiv, errorMessage, [], query, 'search');
             }
         } finally {
+            clearTimeout(timeoutId);
             currentStreamingDiv = null;
             setSendButtonState(false);
             abortController = null;
@@ -1424,6 +1472,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function handleResearchModeRegenerate(apiKey, googleApiKey, query, messageDiv, conversationHistory) {
         abortController = new AbortController();
+        
+        // --- NEW: Timeout logic ---
+        let timeoutId = null;
+        let didTimeout = false;
+        timeoutId = setTimeout(() => {
+            didTimeout = true;
+            if (abortController) {
+                abortController.abort(); // Trigger the abort
+            }
+        }, 8000); // --- CHANGED: 8-second timeout for cold start ---
+        // --- END NEW ---
+        
         try {
             const response = await fetch(`${API_BASE_URL}/research`, {
                 method: 'POST',
@@ -1450,6 +1510,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             while (true) {
                 const { done, value } = await reader.read();
+
+                // --- NEW: Server is alive, clear timeout on first read ---
+                clearTimeout(timeoutId);
+                // --- END NEW ---
+
                 if (done) break;
 
                 buffer += decoder.decode(value, { stream: true });
@@ -1497,20 +1562,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         } catch (error) {
+            clearTimeout(timeoutId);
             const contentDiv = messageDiv.querySelector('.message-content');
             const stepsContainer = contentDiv.querySelector('.research-steps');
             if (stepsContainer) stepsContainer.remove();
 
-            // Handle user-triggered stop
-            if (error.name === 'AbortError') {
-                return; // Stop quietly
+            let errorMessage;
+            if ((error.name === 'AbortError' && didTimeout) || error.name === 'TypeError') {
+                // --- CHANGED: Friendlier error message for timeout OR network error ---
+                errorMessage = "I couldn't get a response from the server. It might be busy or just waking up. Please try sending your message again in a moment.";
+                await streamResponse(messageDiv, errorMessage, [], query, 'research');
+            } else if (error.name === 'AbortError') {
+                // This was a user "Stop" click, do nothing
+            } else {
+                // Other general error
+                errorMessage = error.message || 'Connection error occurred. Please try again.';
+                await streamResponse(messageDiv, errorMessage, [], query, 'research');
             }
-            
-            const errorMessage = error.message || 'Connection error occurred. Please try again.';
-            // Note: The original file had a bug here, referencing 'result'. 
-            // This is the correct error handling:
-            await streamResponse(messageDiv, errorMessage, [], query, 'research');
         } finally {
+            clearTimeout(timeoutId);
             currentStreamingDiv = null;
             setSendButtonState(false);
         }
@@ -1548,4 +1618,4 @@ if ('serviceWorker' in navigator && !sessionStorage.getItem('sw-registered')) {
             .then(() => sessionStorage.setItem('sw-registered', 'true'))
             .catch(err => console.log('SW registration failed:', err));
     }, 3000);
-}
+                }
