@@ -543,7 +543,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 await streamResponse(messageDiv, errorMessage, [], query, 'search');
             }
-        }
         } finally {
             currentStreamingDiv = null;
             setSendButtonState(false);
@@ -645,7 +644,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 errorMessage = error.message || 'Connection error occurred. Please try again.';
             }
             await streamResponse(messageDiv, errorMessage, [], query, 'research');
-        }
         } finally {
             currentStreamingDiv = null;
             setSendButtonState(false);
@@ -1430,7 +1428,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 await streamResponse(messageDiv, errorMessage, [], query, 'search');
             }
-        }
         } finally {
             currentStreamingDiv = null;
             setSendButtonState(false);
@@ -1529,7 +1526,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 errorMessage = error.message || 'Connection error occurred. Please try again.';
             }
             await streamResponse(messageDiv, errorMessage, [], query, 'research');
-        }
         } finally {
             currentStreamingDiv = null;
             setSendButtonState(false);
