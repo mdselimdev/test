@@ -530,15 +530,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         } catch (error) {
+            if (searchStatusDiv) searchStatusDiv.remove(); // Remove status div in all error cases
+            
             if (error.name === 'AbortError') {
-                // --- CHANGE: Conditional remove ---
-                if (searchStatusDiv) searchStatusDiv.remove();
+                // User stopped it, do nothing (it's handled by stopGeneration)
             } else {
-                const errorMessage = error.message || 'I encountered an issue processing your request. Please try again.';
-                // --- CHANGE: Conditional remove ---
-                if (searchStatusDiv) searchStatusDiv.remove();
+                let errorMessage;
+                if (error.name === 'TypeError') {
+                    errorMessage = "I'm having trouble connecting to the server. This might be a network issue or a CORS policy problem. Please try again in a moment.";
+                } else {
+                    errorMessage = error.message || 'I encountered an issue processing your request. Please try again.';
+                }
                 await streamResponse(messageDiv, errorMessage, [], query, 'search');
             }
+        }
         } finally {
             currentStreamingDiv = null;
             setSendButtonState(false);
@@ -632,9 +637,15 @@ document.addEventListener('DOMContentLoaded', () => {
             if (error.name === 'AbortError') {
                 return; // Stop quietly
             }
-
-            const errorMessage = error.message || 'Connection error occurred. Please try again.';
+            
+            let errorMessage;
+            if (error.name === 'TypeError') {
+                errorMessage = "I'm having trouble connecting to the server. This might be a network issue or a CORS policy problem. Please try again in a moment.";
+            } else {
+                errorMessage = error.message || 'Connection error occurred. Please try again.';
+            }
             await streamResponse(messageDiv, errorMessage, [], query, 'research');
+        }
         } finally {
             currentStreamingDiv = null;
             setSendButtonState(false);
@@ -1406,15 +1417,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         } catch (error) {
+            if (searchStatusDiv) searchStatusDiv.remove(); // Remove status div in all error cases
+            
             if (error.name === 'AbortError') {
-                // --- CHANGE: Conditional remove ---
-                if (searchStatusDiv) searchStatusDiv.remove();
+                // User stopped it, do nothing (it's handled by stopGeneration)
             } else {
-                const errorMessage = error.message || 'I encountered an issue. Please try again.';
-                // --- CHANGE: Conditional remove ---
-                if (searchStatusDiv) searchStatusDiv.remove();
+                let errorMessage;
+                if (error.name === 'TypeError') {
+                    errorMessage = "I'm having trouble connecting to the server. This might be a network issue or a CORS policy problem. Please try again in a moment.";
+                } else {
+                    errorMessage = error.message || 'I encountered an issue. Please try again.';
+                }
                 await streamResponse(messageDiv, errorMessage, [], query, 'search');
             }
+        }
         } finally {
             currentStreamingDiv = null;
             setSendButtonState(false);
@@ -1506,10 +1522,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 return; // Stop quietly
             }
             
-            const errorMessage = error.message || 'Connection error occurred. Please try again.';
-            // Note: The original file had a bug here, referencing 'result'. 
-            // This is the correct error handling:
+            let errorMessage;
+            if (error.name === 'TypeError') {
+                errorMessage = "I'm having trouble connecting to the server. This might be a network issue or a CORS policy problem. Please try again in a moment.";
+            } else {
+                errorMessage = error.message || 'Connection error occurred. Please try again.';
+            }
             await streamResponse(messageDiv, errorMessage, [], query, 'research');
+        }
         } finally {
             currentStreamingDiv = null;
             setSendButtonState(false);
