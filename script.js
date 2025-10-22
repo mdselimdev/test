@@ -438,10 +438,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const contentDiv = messageDiv.querySelector('.message-content');
     
-        // --- CHANGE: Initialize status div tracker ---
-        let searchStatusDiv = null; 
-    
-        // --- REMOVED: Initial creation of search status div ---
+        // --- NEW: Immediately show "Connecting..." status ---
+        let searchStatusDiv = document.createElement('div');
+        searchStatusDiv.className = 'search-status';
+        searchStatusDiv.innerHTML = '<div class="status-spinner"></div><span class="status-text">Connecting to server...</span>';
+        contentDiv.appendChild(searchStatusDiv);
+        // --- END NEW ---
 
         const headers = {'Content-Type': 'application/json'};
         const body = JSON.stringify({
@@ -484,26 +486,26 @@ document.addEventListener('DOMContentLoaded', () => {
                             try {
                                 const result = JSON.parse(data);
                             
-                                // --- CHANGE: Dynamically create and update status ---
+                                // --- MODIFIED: Update existing status div ---
                                 if (result.status) {
-                                    if (!searchStatusDiv) {
-                                        // First status received, create the element
-                                        searchStatusDiv = document.createElement('div');
-                                        searchStatusDiv.className = 'search-status';
-                                        searchStatusDiv.innerHTML = '<div class="status-spinner"></div><span class="status-text"></span>';
-                                        contentDiv.appendChild(searchStatusDiv);
-                                    }
-                                    // Update the text
-                                    const statusText = searchStatusDiv.querySelector('.status-text');
-                                    if (statusText) {
-                                        statusText.textContent = result.status;
+                                    if (searchStatusDiv) { // Check if it still exists
+                                        // Update the text
+                                        const statusText = searchStatusDiv.querySelector('.status-text');
+                                        if (statusText) {
+                                            statusText.textContent = result.status;
+                                        }
                                     }
                                 }
+                                // --- END MODIFIED ---
                             
                                 // Handle final answer
                                 if (result.final_answer) {
-                                    // --- CHANGE: Conditional remove ---
-                                    if (searchStatusDiv) searchStatusDiv.remove();
+                                    // --- MODIFIED: Remove status div ---
+                                    if (searchStatusDiv) {
+                                        searchStatusDiv.remove();
+                                        searchStatusDiv = null;
+                                    }
+                                    // --- END MODIFIED ---
                                 
                                     if (result.sources) {
                                         allSourcesList = result.sources;
@@ -530,15 +532,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         } catch (error) {
+            // --- MODIFIED: Enhanced error handling ---
+            if (searchStatusDiv) {
+                searchStatusDiv.remove();
+                searchStatusDiv = null;
+            }
             if (error.name === 'AbortError') {
-                // --- CHANGE: Conditional remove ---
-                if (searchStatusDiv) searchStatusDiv.remove();
+                // User stopped it, handled by stopGeneration()
             } else {
-                const errorMessage = error.message || 'I encountered an issue processing your request. Please try again.';
-                // --- CHANGE: Conditional remove ---
-                if (searchStatusDiv) searchStatusDiv.remove();
+                let errorMessage;
+                if (error.name === 'TypeError') {
+                    errorMessage = "I'm having trouble connecting to the server. This might be a network issue or a CORS policy problem. Please try again in a moment.";
+                } else {
+                    errorMessage = error.message || 'I encountered an issue processing your request. Please try again.';
+                }
                 await streamResponse(messageDiv, errorMessage, [], query, 'search');
             }
+            // --- END MODIFIED ---
         } finally {
             currentStreamingDiv = null;
             setSendButtonState(false);
@@ -550,6 +560,14 @@ document.addEventListener('DOMContentLoaded', () => {
         messageDiv.dataset.query = query;
         messageDiv.dataset.mode = 'research';
         currentStreamingDiv = messageDiv;
+
+        // --- NEW: Immediately show "Connecting..." status ---
+        const contentDiv = messageDiv.querySelector('.message-content');
+        let searchStatusDiv = document.createElement('div');
+        searchStatusDiv.className = 'search-status';
+        searchStatusDiv.innerHTML = '<div class="status-spinner"></div><span class="status-text">Connecting to server...</span>';
+        contentDiv.appendChild(searchStatusDiv);
+        // --- END NEW ---
 
         try {
             const response = await fetch(`${API_BASE_URL}/research`, {
@@ -590,11 +608,23 @@ document.addEventListener('DOMContentLoaded', () => {
                         try {
                             const result = JSON.parse(data);
                             if (result.status) {
+                                // --- NEW: Remove "Connecting..." div on first status update ---
+                                if (searchStatusDiv) {
+                                    searchStatusDiv.remove();
+                                    searchStatusDiv = null;
+                                }
+                                // --- END NEW ---
                                 if (currentStepDiv) currentStepDiv.classList.add('completed');
                                 currentStepDiv = addResearchStep(stepsContainer, result.status);
                                 researchStepsList.push(result.status);
                                 periodicScroll();
                             } else if (result.final_answer) {
+                                // --- NEW: Remove "Connecting..." div if it's still there ---
+                                if (searchStatusDiv) {
+                                    searchStatusDiv.remove();
+                                    searchStatusDiv = null;
+                                }
+                                // --- END NEW ---
                                 stepsContainer.remove();
                                 if (result.sources) {
                                     allSourcesList = result.sources;
@@ -611,6 +641,12 @@ document.addEventListener('DOMContentLoaded', () => {
                                 // Pass the new flag to the streamResponse function
                                 await streamResponse(messageDiv, result.final_answer, result.sources, query, 'research', result.show_ask_scholar_button);
                             } else if (result.error) {
+                                // --- NEW: Remove "Connecting..." div if it's still there ---
+                                if (searchStatusDiv) {
+                                    searchStatusDiv.remove();
+                                    searchStatusDiv = null;
+                                }
+                                // --- END NEW ---
                                 stepsContainer.remove();
                                 const errorMessage = result.message || result.error || 'An error occurred during research.';
                                 await streamResponse(messageDiv, errorMessage, [], query, 'research');
@@ -624,17 +660,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         } catch (error) {
+            // --- MODIFIED: Enhanced error handling ---
+            if (searchStatusDiv) {
+                searchStatusDiv.remove();
+                searchStatusDiv = null;
+            }
             const contentDiv = messageDiv.querySelector('.message-content');
             const stepsContainer = contentDiv.querySelector('.research-steps');
             if (stepsContainer) stepsContainer.remove();
 
-            // Handle user-triggered stop
             if (error.name === 'AbortError') {
                 return; // Stop quietly
             }
 
-            const errorMessage = error.message || 'Connection error occurred. Please try again.';
+            let errorMessage;
+            if (error.name === 'TypeError') {
+                errorMessage = "I'm having trouble connecting to the server. This might be a network issue or a CORS policy problem. Please try again in a moment.";
+            } else {
+                errorMessage = error.message || 'Connection error occurred. Please try again.';
+            }
             await streamResponse(messageDiv, errorMessage, [], query, 'research');
+            // --- END MODIFIED ---
         } finally {
             currentStreamingDiv = null;
             setSendButtonState(false);
@@ -1314,10 +1360,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const contentDiv = messageDiv.querySelector('.message-content');
         abortController = new AbortController();
 
-        // --- CHANGE: Initialize status div tracker ---
-        let searchStatusDiv = null;
-
-        // --- REMOVED: Initial creation of search status div ---
+        // --- NEW: Immediately show "Connecting..." status ---
+        let searchStatusDiv = document.createElement('div');
+        searchStatusDiv.className = 'search-status';
+        searchStatusDiv.innerHTML = '<div class="status-spinner"></div><span class="status-text">Connecting to server...</span>';
+        contentDiv.appendChild(searchStatusDiv);
+        // --- END NEW ---
 
         const headers = {'Content-Type': 'application/json'};
         const body = JSON.stringify({
@@ -1360,26 +1408,26 @@ document.addEventListener('DOMContentLoaded', () => {
                             try {
                                 const result = JSON.parse(data);
                             
-                                // --- CHANGE: Dynamically create and update status ---
+                                // --- MODIFIED: Update existing status div ---
                                 if (result.status) {
-                                    if (!searchStatusDiv) {
-                                        // First status received, create the element
-                                        searchStatusDiv = document.createElement('div');
-                                        searchStatusDiv.className = 'search-status';
-                                        searchStatusDiv.innerHTML = '<div class="status-spinner"></div><span class="status-text"></span>';
-                                        contentDiv.appendChild(searchStatusDiv);
-                                    }
-                                    // Update the text
-                                    const statusText = searchStatusDiv.querySelector('.status-text');
-                                    if (statusText) {
-                                        statusText.textContent = result.status;
+                                    if (searchStatusDiv) { // Check if it still exists
+                                        // Update the text
+                                        const statusText = searchStatusDiv.querySelector('.status-text');
+                                        if (statusText) {
+                                            statusText.textContent = result.status;
+                                        }
                                     }
                                 }
+                                // --- END MODIFIED ---
                             
                                 // Handle final answer
                                 if (result.final_answer) {
-                                    // --- CHANGE: Conditional remove ---
-                                    if (searchStatusDiv) searchStatusDiv.remove();
+                                    // --- MODIFIED: Remove status div ---
+                                    if (searchStatusDiv) {
+                                        searchStatusDiv.remove();
+                                        searchStatusDiv = null;
+                                    }
+                                    // --- END MODIFIED ---
                                 
                                     if (result.sources) {
                                         allSourcesList = result.sources;
@@ -1406,15 +1454,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         } catch (error) {
+            // --- MODIFIED: Enhanced error handling ---
+            if (searchStatusDiv) {
+                searchStatusDiv.remove();
+                searchStatusDiv = null;
+            }
             if (error.name === 'AbortError') {
-                // --- CHANGE: Conditional remove ---
-                if (searchStatusDiv) searchStatusDiv.remove();
+                // User stopped it, handled by stopGeneration()
             } else {
-                const errorMessage = error.message || 'I encountered an issue. Please try again.';
-                // --- CHANGE: Conditional remove ---
-                if (searchStatusDiv) searchStatusDiv.remove();
+                let errorMessage;
+                if (error.name === 'TypeError') {
+                    errorMessage = "I'm having trouble connecting to the server. This might be a network issue or a CORS policy problem. Please try again in a moment.";
+                } else {
+                    errorMessage = error.message || 'I encountered an issue. Please try again.';
+                }
                 await streamResponse(messageDiv, errorMessage, [], query, 'search');
             }
+            // --- END MODIFIED ---
         } finally {
             currentStreamingDiv = null;
             setSendButtonState(false);
@@ -1424,6 +1480,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function handleResearchModeRegenerate(apiKey, googleApiKey, query, messageDiv, conversationHistory) {
         abortController = new AbortController();
+        const contentDiv = messageDiv.querySelector('.message-content');
+        
+        // --- NEW: Immediately show "Connecting..." status ---
+        let searchStatusDiv = document.createElement('div');
+        searchStatusDiv.className = 'search-status';
+        searchStatusDiv.innerHTML = '<div class="status-spinner"></div><span class="status-text">Connecting to server...</span>';
+        contentDiv.appendChild(searchStatusDiv);
+        // --- END NEW ---
+        
         try {
             const response = await fetch(`${API_BASE_URL}/research`, {
                 method: 'POST',
@@ -1441,7 +1506,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
-            const contentDiv = messageDiv.querySelector('.message-content');
             const stepsContainer = document.createElement('div');
             stepsContainer.className = 'research-steps';
             contentDiv.appendChild(stepsContainer);
@@ -1464,11 +1528,23 @@ document.addEventListener('DOMContentLoaded', () => {
                         try {
                             const result = JSON.parse(data);
                             if (result.status) {
+                                // --- NEW: Remove "Connecting..." div on first status update ---
+                                if (searchStatusDiv) {
+                                    searchStatusDiv.remove();
+                                    searchStatusDiv = null;
+                                }
+                                // --- END NEW ---
                                 if (currentStepDiv) currentStepDiv.classList.add('completed');
                                 currentStepDiv = addResearchStep(stepsContainer, result.status);
                                 researchStepsList.push(result.status);
                                 periodicScroll();
                             } else if (result.final_answer) {
+                                // --- NEW: Remove "Connecting..." div if it's still there ---
+                                if (searchStatusDiv) {
+                                    searchStatusDiv.remove();
+                                    searchStatusDiv = null;
+                                }
+                                // --- END NEW ---
                                 stepsContainer.remove();
                                 if (result.sources) {
                                     allSourcesList = result.sources;
@@ -1484,6 +1560,12 @@ document.addEventListener('DOMContentLoaded', () => {
                                 }
                                 await streamResponse(messageDiv, result.final_answer, result.sources, query, 'research', result.show_ask_scholar_button);
                             } else if (result.error) {
+                                // --- NEW: Remove "Connecting..." div if it's still there ---
+                                if (searchStatusDiv) {
+                                    searchStatusDiv.remove();
+                                    searchStatusDiv = null;
+                                }
+                                // --- END NEW ---
                                 stepsContainer.remove();
                                 const errorMessage = result.message || result.error || 'An error occurred.';
                                 await streamResponse(messageDiv, errorMessage, [], query, 'research');
@@ -1497,19 +1579,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         } catch (error) {
+            // --- MODIFIED: Enhanced error handling ---
+            if (searchStatusDiv) {
+                searchStatusDiv.remove();
+                searchStatusDiv = null;
+            }
             const contentDiv = messageDiv.querySelector('.message-content');
             const stepsContainer = contentDiv.querySelector('.research-steps');
             if (stepsContainer) stepsContainer.remove();
 
-            // Handle user-triggered stop
             if (error.name === 'AbortError') {
                 return; // Stop quietly
             }
             
-            const errorMessage = error.message || 'Connection error occurred. Please try again.';
-            // Note: The original file had a bug here, referencing 'result'. 
-            // This is the correct error handling:
+            let errorMessage;
+            if (error.name === 'TypeError') {
+                errorMessage = "I'm having trouble connecting to the server. This might be a network issue or a CORS policy problem. Please try again in a moment.";
+            } else {
+                errorMessage = error.message || 'Connection error occurred. Please try again.';
+            }
             await streamResponse(messageDiv, errorMessage, [], query, 'research');
+            // --- END MODIFIED ---
         } finally {
             currentStreamingDiv = null;
             setSendButtonState(false);
