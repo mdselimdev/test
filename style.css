@@ -344,6 +344,59 @@ body::before {
   transform: rotate(90deg);
 }
 
+.donate-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: var(--accent-primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.donate-btn:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+}
+
+.donate-btn svg {
+    flex-shrink: 0;
+}
+
+.donate-btn span {
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .donate-btn span {
+        display: none;
+    }
+    .donate-btn {
+        padding: 8px;
+    }
+}
+
+.donate-link-modal {
+    display: inline-block;
+    padding: 10px 20px;
+    background: var(--accent-primary);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+
+.donate-link-modal:hover {
+    background: var(--accent-hover);
+}
+
 /* Chat Messages */
 .chat-messages {
   flex: 1;
