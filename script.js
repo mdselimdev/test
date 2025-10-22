@@ -530,8 +530,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         } catch (error) {
-            if (searchStatusDiv) searchStatusDiv.remove(); // Remove status div in all error cases
-            
+            if (searchStatusDiv) {
+                searchStatusDiv.remove(); // Remove status div in all error cases
+            }
             if (error.name === 'AbortError') {
                 // User stopped it, do nothing (it's handled by stopGeneration)
             } else {
@@ -631,8 +632,9 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             const contentDiv = messageDiv.querySelector('.message-content');
             const stepsContainer = contentDiv.querySelector('.research-steps');
-            if (stepsContainer) stepsContainer.remove();
-
+            if (stepsContainer) {
+                stepsContainer.remove();
+            }
             // Handle user-triggered stop
             if (error.name === 'AbortError') {
                 return; // Stop quietly
@@ -1417,8 +1419,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         } catch (error) {
-            if (searchStatusDiv) searchStatusDiv.remove(); // Remove status div in all error cases
-            
+            if (searchStatusDiv) {
+                searchStatusDiv.remove(); // Remove status div in all error cases
+            }
             if (error.name === 'AbortError') {
                 // User stopped it, do nothing (it's handled by stopGeneration)
             } else {
@@ -1515,8 +1518,9 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             const contentDiv = messageDiv.querySelector('.message-content');
             const stepsContainer = contentDiv.querySelector('.research-steps');
-            if (stepsContainer) stepsContainer.remove();
-
+            if (stepsContainer) {
+                stepsContainer.remove();
+            }
             // Handle user-triggered stop
             if (error.name === 'AbortError') {
                 return; // Stop quietly
