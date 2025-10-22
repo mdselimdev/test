@@ -344,28 +344,61 @@ body::before {
   transform: rotate(90deg);
 }
 
-@media (max-width: 768px) {
-    .donate-btn span {
-        display: none;
-    }
-    .donate-btn {
-        padding: 8px;
-    }
+/* Header Actions Container */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
 }
 
-.donate-link-modal {
-    display: inline-block;
-    padding: 10px 20px;
+/* Donate Button */
+.donate-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 0.875rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-radius: 12px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow-sm);
+    font-size: 0.925rem;
+    font-weight: 600;
+}
+
+.donate-btn:hover {
     background: var(--accent-primary);
     color: white;
-    text-decoration: none;
-    border-radius: 8px;
-    font-weight: 500;
-    transition: background 0.2s;
+    border-color: var(--accent-primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
 }
 
-.donate-link-modal:hover {
-    background: var(--accent-hover);
+.donate-btn svg {
+    stroke: currentColor;
+    flex-shrink: 0;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.donate-btn:hover svg {
+    transform: scale(1.1);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .donate-text {
+        display: none;
+    }
+    
+    .donate-btn {
+        padding: 0.625rem;
+    }
+    
+    .header-actions {
+        gap: 0.5rem;
+    }
 }
 
 /* Chat Messages */
