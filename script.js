@@ -537,7 +537,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 let errorMessage;
                 if (error.name === 'TypeError') {
-                    errorMessage = "I'm having trouble connecting to the server. This might be a network issue or a CORS policy problem. Please try again in a moment.";
+                    errorMessage = "I'm having trouble connecting to the server. This might be a network issue. Please try again in a moment.";
                 } else {
                     errorMessage = error.message || 'I encountered an issue processing your request. Please try again.';
                 }
@@ -639,7 +639,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             let errorMessage;
             if (error.name === 'TypeError') {
-                errorMessage = "I'm having trouble connecting to the server. This might be a network issue or a CORS policy problem. Please try again in a moment.";
+                errorMessage = "I'm having trouble connecting to the server. This might be a network issue. Please try again in a moment.";
             } else {
                 errorMessage = error.message || 'Connection error occurred. Please try again.';
             }
@@ -1422,7 +1422,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 let errorMessage;
                 if (error.name === 'TypeError') {
-                    errorMessage = "I'm having trouble connecting to the server. This might be a network issue or a CORS policy problem. Please try again in a moment.";
+                    errorMessage = "I'm having trouble connecting to the server. This might be a network issue. Please try again in a moment.";
                 } else {
                     errorMessage = error.message || 'I encountered an issue. Please try again.';
                 }
@@ -1521,7 +1521,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             let errorMessage;
             if (error.name === 'TypeError') {
-                errorMessage = "I'm having trouble connecting to the server. This might be a network issue or a CORS policy problem. Please try again in a moment.";
+                errorMessage = "I'm having trouble connecting to the server. This might be a network issue. Please try again in a moment.";
             } else {
                 errorMessage = error.message || 'Connection error occurred. Please try again.';
             }
