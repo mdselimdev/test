@@ -414,7 +414,7 @@ body::before {
 }
 
 .chat-messages:not(.has-welcome) {
-  padding: 0;
+  padding: 2rem 0;
   padding-bottom: calc(var(--input-height) + 8rem);
 }
 
