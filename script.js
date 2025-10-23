@@ -1618,4 +1618,4 @@ if ('serviceWorker' in navigator && !sessionStorage.getItem('sw-registered')) {
             .then(() => sessionStorage.setItem('sw-registered', 'true'))
             .catch(err => console.log('SW registration failed:', err));
     }, 3000);
-                }
+}
