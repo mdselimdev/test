@@ -415,7 +415,7 @@ body::before {
 
 .chat-messages:not(.has-welcome) {
   padding: 2rem 0;
-  padding-bottom: calc(var(--input-height) + 2rem);
+  padding-bottom: calc(var(--input-height) + 8rem);
 }
 
 /* Welcome Screen - Premium redesign */
@@ -1392,9 +1392,6 @@ body::before {
   background: linear-gradient(135deg, var(--accent-primary), var(--accent-hover));
   border: none;
   color: white;
-  /* REMOVED width: 44px; */
-  /* REMOVED height: 44px; */
-  /* CHANGED border-radius: 50%; */
   border-radius: 10px;
   cursor: pointer;
   display: flex;
@@ -1402,7 +1399,6 @@ body::before {
   justify-content: center;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4px 12px rgba(32, 128, 141, 0.4);
-  /* CHANGED padding to be equal (matches workflow-btn vertical padding) */
   padding: 0.625rem;
 }
 
@@ -1535,7 +1531,7 @@ body::before {
     }
     
     .chat-messages:not(.has-welcome) {
-        padding-bottom: calc(var(--input-height) + 1.25rem);
+        padding-bottom: calc(var(--input-height) + 6rem);
     }
 }
 
