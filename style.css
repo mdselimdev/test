@@ -414,8 +414,8 @@ body::before {
 }
 
 .chat-messages:not(.has-welcome) {
-  padding: 2rem 0;
-  padding-bottom: calc(var(--input-height) + 2rem);
+  padding: 1rem 0;
+  padding-bottom: calc(var(--input-height) + 4rem);
 }
 
 /* Welcome Screen - Premium redesign */
@@ -530,11 +530,11 @@ body::before {
 
 .message-user {
   padding: 0 2rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
 }
 
 .message-assistant {
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
 /* User Message - Enhanced */
@@ -548,7 +548,7 @@ body::before {
 .message-user .message-content {
   background: transparent;
   color: var(--text-primary);
-  padding: 1rem 0;
+  padding: 0.5rem 0;
   border-radius: 0;
   width: 100%;
   word-wrap: break-word;
@@ -1535,7 +1535,7 @@ body::before {
     }
     
     .chat-messages:not(.has-welcome) {
-        padding-bottom: calc(var(--input-height) + 1.25rem);
+        padding-bottom: calc(var(--input-height) + 3rem);
     }
 }
 
