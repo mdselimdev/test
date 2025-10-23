@@ -7,7 +7,13 @@ const urlsToCache = [
   '/script.js',
   '/site.webmanifest',
   '/assets/icon-192.png',
-  '/assets/icon-512.png'
+  '/assets/icon-512.png',
+  '/assets/favicon.png',
+  '/assets/favicon.svg',
+  '/assets/favicon.ico',
+  '/assets/apple-touch-icon.png',
+  '/assets/icon-192-maskable.png',
+  '/assets/icon-512-maskable.png'
 ];
 
 // Install service worker
