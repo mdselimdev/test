@@ -1610,12 +1610,3 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 3000);
     }
 });
-
-// Lazy load service worker registration
-if ('serviceWorker' in navigator && !sessionStorage.getItem('sw-registered')) {
-    setTimeout(() => {
-        navigator.serviceWorker.register('/sw.js', { scope: '/' })
-            .then(() => sessionStorage.setItem('sw-registered', 'true'))
-            .catch(err => console.log('SW registration failed:', err));
-    }, 3000);
-}
