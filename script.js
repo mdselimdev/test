@@ -118,10 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let previousMessage = currentMessageDiv ? currentMessageDiv.previousElementSibling : null;
 
         while (previousMessage) {
-            if (
-                previousMessage.classList.contains('welcome-screen') ||
-                (currentMessageDiv && currentMessageDiv.classList.contains('message-assistant') && previousMessage === currentMessageDiv.previousElementSibling)
-            ) {
+            if (previousMessage.classList.contains('welcome-screen')) {
                 break;
             }
 
@@ -1293,8 +1290,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const apiKey = localStorage.getItem('gemini_api_key');
         const googleApiKey = localStorage.getItem('google_api_key');
 
-        const conversationHistory = extractContextFromDOM(messageDiv);
-
+        const userMessageDiv = messageDiv.previousElementSibling; // Get the user message before the assistant one
+        const conversationHistory = extractContextFromDOM(userMessageDiv); // Pass the user message
+        
         setSendButtonState(true);
         if (newMode === 'search') {
             handleSearchModeRegenerate(apiKey, googleApiKey, query, messageDiv, conversationHistory);
@@ -1332,7 +1330,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const apiKey = localStorage.getItem('gemini_api_key');
         const googleApiKey = localStorage.getItem('google_api_key');
 
-        const conversationHistory = extractContextFromDOM(responseDiv);
+        const userMessageDiv = responseDiv.previousElementSibling; // Get the user message before the assistant one
+        const conversationHistory = extractContextFromDOM(userMessageDiv); // Pass the user message
         abortController = new AbortController();
         setSendButtonState(true);
         if (workflow === 'search') {
