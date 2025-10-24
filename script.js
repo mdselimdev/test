@@ -267,9 +267,30 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     saveSettingsBtn.addEventListener('click', () => {
+        const apiKey = apiKeyInput.value.trim();
+        const googleApiKey = googleApiKeyInput.value.trim();
+    
+        // Check if at least one key is provided
+        if (!apiKey && !googleApiKey) {
+            showNotification('Please enter at least one API key', 'error');
+            return;
+        }
+    
+        // Try to save settings (validation happens inside saveSettings)
+        const previousGeminiKey = localStorage.getItem('gemini_api_key');
+        const previousGoogleKey = localStorage.getItem('google_api_key');
+    
         saveSettings();
-        settingsModal.classList.add('hidden');
-        showNotification('Settings saved successfully!');
+    
+        // Only close modal and show success if keys were actually saved
+        // Check if localStorage was updated
+        const currentGeminiKey = localStorage.getItem('gemini_api_key');
+        const currentGoogleKey = localStorage.getItem('google_api_key');
+    
+        if (currentGeminiKey !== previousGeminiKey || currentGoogleKey !== previousGoogleKey) {
+            settingsModal.classList.add('hidden');
+            showNotification('Settings saved successfully!');
+        }
     });
 
     function setSendButtonState(generating) {
@@ -1582,11 +1603,40 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function loadSettings() {
-        const apiKey = localStorage.getItem('gemini_api_key');
-        const googleApiKey = localStorage.getItem('google_api_key');
-        if (apiKey) apiKeyInput.value = apiKey;
-        if (googleApiKey) googleApiKeyInput.value = googleApiKey;
+    // API Key Validation Functions
+    function validateGeminiApiKey(apiKey) {
+        // Gemini API keys start with "AIza" and are 39 characters long
+        const geminiPattern = /^AIza[A-Za-z0-9_-]{35}$/;
+        return geminiPattern.test(apiKey);
+    }
+
+    function validateGoogleApiKey(apiKey) {
+        // Google Cloud API keys (including Custom Search) start with "AIza" and are 39 characters long
+        const googlePattern = /^AIza[A-Za-z0-9_-]{35}$/;
+        return googlePattern.test(apiKey);
+    }
+
+    function saveSettings() {
+        const apiKey = apiKeyInput.value.trim();
+        const googleApiKey = googleApiKeyInput.value.trim();
+    
+        // Validate Gemini API Key if provided
+        if (apiKey && !validateGeminiApiKey(apiKey)) {
+            showNotification('Invalid Gemini API key format. Key should start with "AIza" and be 39 characters long.', 'error');
+            apiKeyInput.focus();
+            return;
+        }
+    
+        // Validate Google API Key if provided
+        if (googleApiKey && !validateGoogleApiKey(googleApiKey)) {
+            showNotification('Invalid Google API key format. Key should start with "AIza" and be 39 characters long.', 'error');
+            googleApiKeyInput.focus();
+            return;
+        }
+    
+        // Both keys are valid or empty, save them
+        localStorage.setItem('gemini_api_key', apiKey);
+        localStorage.setItem('google_api_key', googleApiKey);
     }
 
     function saveSettings() {
