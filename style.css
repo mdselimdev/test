@@ -548,7 +548,7 @@ body::before {
 .message-user .message-content {
   background: transparent;
   color: var(--text-primary);
-  padding: 1rem 0;
+  padding: 0;
   border-radius: 0;
   width: 100%;
   word-wrap: break-word;
@@ -568,7 +568,7 @@ body::before {
   gap: 0.5rem;
   opacity: 0;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  margin-top: 0.625rem;
+  margin-top: 0rem;
   justify-content: flex-end;
   pointer-events: none;
 }
