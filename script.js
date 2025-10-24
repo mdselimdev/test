@@ -1589,11 +1589,63 @@ document.addEventListener('DOMContentLoaded', () => {
         if (googleApiKey) googleApiKeyInput.value = googleApiKey;
     }
 
+    function validateApiKeys(geminiKey, googleKey) {
+        const errors = [];
+    
+        // Validate Gemini API Key format
+        // Gemini API keys start with "AIza" and are typically 39 characters long
+        if (geminiKey) {
+            if (!geminiKey.startsWith('AIza')) {
+                errors.push('Gemini API key must start with "AIza"');
+            }
+            if (geminiKey.length !== 39) {
+                errors.push('Gemini API key should be 39 characters long');
+            }
+            if (!/^[A-Za-z0-9_-]+$/.test(geminiKey)) {
+                errors.push('Gemini API key contains invalid characters');
+            }
+        } else {
+            errors.push('Gemini API key is required');
+        }
+    
+        // Validate Google Cloud API Key format
+        // Google Cloud API keys also start with "AIza" and are typically 39 characters long
+        if (googleKey) {
+            if (!googleKey.startsWith('AIza')) {
+                errors.push('Google Cloud API key must start with "AIza"');
+            }
+            if (googleKey.length !== 39) {
+                errors.push('Google Cloud API key should be 39 characters long');
+            }
+            if (!/^[A-Za-z0-9_-]+$/.test(googleKey)) {
+                errors.push('Google Cloud API key contains invalid characters');
+            }
+        } else {
+            errors.push('Google Cloud API key is required');
+        }
+    
+        return errors;
+    }
+
     function saveSettings() {
         const apiKey = apiKeyInput.value.trim();
         const googleApiKey = googleApiKeyInput.value.trim();
-        localStorage.setItem('gemini_api_key', apiKey);
-        localStorage.setItem('google_api_key', googleApiKey);
+    
+        // Validate API keys before saving
+        const validationErrors = validateApiKeys(apiKey, googleApiKey);
+    
+        if (validationErrors.length > 0) {
+            // Show all validation errors
+            const errorMessage = validationErrors.join('\n• ');
+            showNotification('Invalid API Key Format:\n• ' + errorMessage, 'error');
+            return; // Don't save if validation fails
+        }
+    
+        // Only save if validation passes
+        localStorage.setItem('geminiapikey', apiKey);
+        localStorage.setItem('googleapikey', googleApiKey);
+    
+        showNotification('Settings saved successfully!', 'success');
     }
 
     function showNotification(message, type = 'success') {
