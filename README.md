@@ -1,7 +1,7 @@
 # Perspicacity
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Live Demo](https://img.shields.io/badge/demo-online-green.svg)](https://perspicacity.is-cool.dev)
+[![Live Demo](https://img.shields.io/badge/demo-online-green.svg)](https://perspicacity.pages.dev)
 
 > **Beyond Knowledge, Towards Wisdom**
 
