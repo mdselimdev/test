@@ -1639,13 +1639,6 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('google_api_key', googleApiKey);
     }
 
-    function saveSettings() {
-        const apiKey = apiKeyInput.value.trim();
-        const googleApiKey = googleApiKeyInput.value.trim();
-        localStorage.setItem('gemini_api_key', apiKey);
-        localStorage.setItem('google_api_key', googleApiKey);
-    }
-
     function showNotification(message, type = 'success') {
         const notification = document.createElement('div');
         notification.style.cssText = `position: fixed; top: 20px; right: 20px; padding: 1rem 1.5rem; border-radius: 12px; z-index: 9999; animation: slideUp 0.3s ease; background: ${type === 'error' ? 'var(--error-bg)' : 'var(--success-bg)'}; color: ${type === 'error' ? 'var(--error-text)' : 'var(--success-text)'}; border: 1px solid ${type === 'error' ? 'var(--error-text)' : 'var(--success-text)'};`;
