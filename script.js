@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://perspicacity.onrender.com';
+const API_BASE_URL = 'https://perspicacitybackend.onrender.com';
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
@@ -124,7 +124,10 @@ document.addEventListener('DOMContentLoaded', () => {
         let previousMessage = currentMessageDiv ? currentMessageDiv.previousElementSibling : null;
 
         while (previousMessage) {
-            if (previousMessage.classList.contains('welcome-screen')) {
+            if (
+                previousMessage.classList.contains('welcome-screen') || 
+                (currentMessageDiv && previousMessage === currentMessageDiv.previousElementSibling)
+            ) {
                 break;
             }
 
