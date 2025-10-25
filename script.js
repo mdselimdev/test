@@ -603,9 +603,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (searchStatusDiv) searchStatusDiv.remove(); 
     
             let errorMessage;
-            if ((error.name === 'AbortError' && didTimeout) || error.name === 'TypeError') {
-                // --- CHANGED: Friendlier error message for timeout OR network error ---
+            if (error.name === 'AbortError' && didTimeout) {
+                // Server spin-down
                 errorMessage = "I couldn't get a response from the server. It might be busy or just waking up. Please try sending your message again in a moment.";
+                await streamResponse(messageDiv, errorMessage, [], query, 'search');
+            } else if (error.name === 'TypeError') {
+                // Network or CORS error
+                errorMessage = "I'm having trouble connecting. Please check your network connection and try again.";
                 await streamResponse(messageDiv, errorMessage, [], query, 'search');
             } else if (error.name === 'AbortError') {
                 // This was a user "Stop" click, do nothing
