@@ -598,7 +598,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             }
-        } catch (error) {
+        } catch (error) { // <-- START OF CORRECTED CATCH
             clearTimeout(timeoutId);
             if (searchStatusDiv) searchStatusDiv.remove(); 
     
@@ -618,131 +618,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 errorMessage = error.message || 'I encountered an issue processing your request. Please try again.';
                 await streamResponse(messageDiv, errorMessage, [], query, 'search');
             }
-        }
-        } finally {
-            clearTimeout(timeoutId);
-            currentStreamingDiv = null;
-            setSendButtonState(false);
-        }
-    }
-
-    async function handleResearchMode(apiKey, googleApiKey, query, conversationHistory) {
-        const messageDiv = addMessage('', 'assistant', 'research');
-        messageDiv.dataset.query = query;
-        messageDiv.dataset.mode = 'research';
-        currentStreamingDiv = messageDiv;
-
-        // --- NEW: Timeout logic ---
-        let timeoutId = null;
-        let didTimeout = false;
-        timeoutId = setTimeout(() => {
-            didTimeout = true;
-            if (abortController) {
-                abortController.abort(); // Trigger the abort
-            }
-        }, 8000); // --- CHANGED: 8-second timeout for cold start ---
-        // --- END NEW ---
-
-        try {
-            const response = await fetch(`${API_BASE_URL}/research`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    query: query,
-                    api_key: apiKey,
-                    google_api_key: googleApiKey,
-                    conversation_history: conversationHistory
-                }),
-                signal: abortController.signal
-            });
-
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
-            const stepsContainer = document.createElement('div');
-            stepsContainer.className = 'research-steps';
-            messageDiv.querySelector('.message-content').appendChild(stepsContainer);
-            let currentStepDiv = null;
-            let buffer = '';
-
-            while (true) {
-                const { done, value } = await reader.read();
-
-                // --- NEW: Server is alive, clear timeout on first read ---
-                clearTimeout(timeoutId);
-                // --- END NEW ---
-
-                if (done) break;
-
-                buffer += decoder.decode(value, { stream: true });
-                const lines = buffer.split('\n');
-                buffer = lines.pop() || '';
-
-                for (const line of lines) {
-                    if (line.startsWith('data: ')) {
-                        const data = line.slice(6);
-                        if (data === 'Stream finished.') continue;
-
-                        try {
-                            const result = JSON.parse(data);
-                            if (result.status) {
-                                if (currentStepDiv) currentStepDiv.classList.add('completed');
-                                currentStepDiv = addResearchStep(stepsContainer, result.status);
-                                researchStepsList.push(result.status);
-                                periodicScroll();
-                            } else if (result.final_answer) {
-                                stepsContainer.remove();
-                                if (result.sources) {
-                                    allSourcesList = result.sources;
-                                    result.sources.forEach((source, index) => {
-                                        sourcesMap[index + 1] = source;
-                                    });
-                                }
-                                if (result.articles) {
-                                    allArticlesList = result.articles;
-                                }
-                                if (result.books) {
-                                    allBooksList = result.books;
-                                }
-                                await streamResponse(messageDiv, result.final_answer, result.sources, query, 'research', result.show_ask_scholar_button);
-                            } else if (result.error) {
-                                stepsContainer.remove();
-                                const errorMessage = result.message || result.error || 'An error occurred during research.';
-                                await streamResponse(messageDiv, errorMessage, [], query, 'research');
-                                currentStreamingDiv = null;
-                                setSendButtonState(false);
-                            }
-                        } catch (e) {
-                            console.error('Error parsing JSON:', e);
-                        }
-                    }
-                }
-            }
-        } catch (error) {
-            clearTimeout(timeoutId);
-            const contentDiv = messageDiv.querySelector('.message-content');
-            const stepsContainer = contentDiv.querySelector('.research-steps');
-            if (stepsContainer) stepsContainer.remove();
-    
-            let errorMessage;
-            if (error.name === 'AbortError' && didTimeout) {
-                // Server spin-down
-                errorMessage = "I couldn't get a response from the server. It might be busy or just waking up. Please try sending your message again in a moment.";
-                await streamResponse(messageDiv, errorMessage, [], query, 'research');
-            } else if (error.name === 'TypeError') {
-                // Network or CORS error
-                errorMessage = "I'm having trouble connecting. Please check your network connection and try again.";
-                await streamResponse(messageDiv, errorMessage, [], query, 'research');
-            } else if (error.name === 'AbortError') {
-                // This was a user "Stop" click, do nothing
-            }         else {
-                // Other general error
-                errorMessage = error.message || 'Connection error occurred. Please try again.';
-                await streamResponse(messageDiv, errorMessage, [], query, 'research');
-            }
-        }
-        } finally {
+        } finally { // <-- NO EXTRA BRACE BEFORE THIS
             clearTimeout(timeoutId);
             currentStreamingDiv = null;
             setSendButtonState(false);
