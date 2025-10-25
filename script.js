@@ -266,10 +266,56 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    saveSettingsBtn.addEventListener('click', () => {
-        saveSettings();
-        settingsModal.classList.add('hidden');
-        showNotification('Settings saved successfully!');
+    saveSettingsBtn.addEventListener('click', async () => {
+        const apiKey = apiKeyInput.value.trim();
+        const googleApiKey = googleApiKeyInput.value.trim();
+        const originalBtnHTML = saveSettingsBtn.innerHTML;
+
+        if (!apiKey || !googleApiKey) {
+            showNotification('Please fill in both API keys.', 'error');
+            return;
+        }
+
+        // 1. Show loading state
+        saveSettingsBtn.disabled = true;
+        saveSettingsBtn.innerHTML = 'Validating...';
+
+        try {
+            // 2. Call the new validation endpoint
+            const response = await fetch(`${API_BASE_URL}/validate-keys`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    api_key: apiKey,
+                    google_api_key: googleApiKey
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                // 3. Handle validation failure
+                throw new Error(data.error || 'Validation failed. Please check your keys.');
+            }
+
+            // 4. Handle validation success
+            localStorage.setItem('gemini_api_key', apiKey);
+            localStorage.setItem('google_api_key', googleApiKey);
+            showNotification('Settings saved successfully!');
+            settingsModal.classList.add('hidden');
+
+        } catch (error) {
+            // 5. Show error message in a notification
+            // The modal stays open so the user can fix the keys.
+            showNotification(error.message, 'error');
+        
+        } finally {
+            // 6. Always restore the button
+            saveSettingsBtn.disabled = false;
+            saveSettingsBtn.innerHTML = originalBtnHTML;
+        }
     });
 
     function setSendButtonState(generating) {
@@ -1587,13 +1633,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const googleApiKey = localStorage.getItem('google_api_key');
         if (apiKey) apiKeyInput.value = apiKey;
         if (googleApiKey) googleApiKeyInput.value = googleApiKey;
-    }
-
-    function saveSettings() {
-        const apiKey = apiKeyInput.value.trim();
-        const googleApiKey = googleApiKeyInput.value.trim();
-        localStorage.setItem('gemini_api_key', apiKey);
-        localStorage.setItem('google_api_key', googleApiKey);
     }
 
     function showNotification(message, type = 'success') {
