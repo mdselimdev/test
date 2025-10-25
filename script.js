@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://perspicacity.onrender.com';
+const API_BASE_URL = 'https://perspicacitybackend.onrender.com';
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
@@ -280,8 +280,14 @@ document.addEventListener('DOMContentLoaded', () => {
         saveSettingsBtn.disabled = true;
         saveSettingsBtn.innerHTML = 'Validating...';
 
+        // 2. --- NEW: Create AbortController for timeout ---
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => {
+            controller.abort();
+        }, 8000); // 8-second timeout, just like your streaming endpoints
+
         try {
-            // 2. Call the new validation endpoint
+            // 3. Call the new validation endpoint, passing the signal
             const response = await fetch(`${API_BASE_URL}/validate-keys`, {
                 method: 'POST',
                 headers: {
@@ -290,29 +296,46 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({
                     api_key: apiKey,
                     google_api_key: googleApiKey
-                })
+                }),
+                signal: controller.signal // --- NEW: Pass the signal ---
             });
+
+            // 4. --- NEW: Clear timeout if response is successful ---
+            clearTimeout(timeoutId);
 
             const data = await response.json();
 
             if (!response.ok) {
-                // 3. Handle validation failure
+                // 5. Handle validation failure (e.g., "Invalid Gemini API key")
                 throw new Error(data.error || 'Validation failed. Please check your keys.');
             }
 
-            // 4. Handle validation success
+            // 6. Handle validation success
             localStorage.setItem('gemini_api_key', apiKey);
             localStorage.setItem('google_api_key', googleApiKey);
             showNotification('Settings saved successfully!');
             settingsModal.classList.add('hidden');
 
         } catch (error) {
-            // 5. Show error message in a notification
-            // The modal stays open so the user can fix the keys.
-            showNotification(error.message, 'error');
+            // 7. --- NEW: Clear timeout in case of non-abort error ---
+            clearTimeout(timeoutId);
+
+            // 8. --- NEW: Updated catch block to handle AbortError ---
+            let errorMessage;
+            if (error.name === 'AbortError') {
+                // This is our custom 8-second timeout firing
+                errorMessage = "Server is waking up. Please try again in a moment.";
+            } else if (error.name === 'TypeError') {
+                // This is a genuine network/CORS error (less likely but good to keep)
+                errorMessage = "Failed to connect to server. Check your network.";
+            } else {
+                // This is a validation error from the server (e.g., "Invalid Gemini Key")
+                errorMessage = error.message || 'An unknown error occurred.';
+            }
+            showNotification(errorMessage, 'error');
         
         } finally {
-            // 6. Always restore the button
+            // 9. Always restore the button
             saveSettingsBtn.disabled = false;
             saveSettingsBtn.innerHTML = originalBtnHTML;
         }
